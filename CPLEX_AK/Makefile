@@ -10,7 +10,7 @@
 
 CPLEXDIR      = $(PATHTUTOMIP)/cplex-12.7.1/cplex
 CONCERTDIR    = $(PATHTUTOMIP)/cplex-12.7.1/concert
-LEMONDIR      = $(PATHTUTOMIP)/lemon-1.3.1
+#LEMONDIR      = $(PATHTUTOMIP)/lemon-1.3.1
 
 
 SYSTEM     = x86-64_linux
@@ -37,18 +37,18 @@ CCOPT = -m64 -O -fPIC -fno-strict-aliasing -fexceptions -DNDEBUG -DIL_STD
 CPLEXBINDIR   = $(CPLEXDIR)/bin/$(BINDIST)
 CPLEXLIBDIR   = $(CPLEXDIR)/lib/$(SYSTEM)/$(LIBFORMAT)
 CONCERTLIBDIR = $(CONCERTDIR)/lib/$(SYSTEM)/$(LIBFORMAT)
-LEMONLIBDIR	= $(LEMONDIR)/lib
+#LEMONLIBDIR	= $(LEMONDIR)/lib
 
-CCLNDIRS  = -L$(CPLEXLIBDIR) -L$(CONCERTLIBDIR) -L$(LEMONLIBDIR)
+CCLNDIRS  = -L$(CPLEXLIBDIR) -L$(CONCERTLIBDIR) # -L$(LEMONLIBDIR)
 
 
 CONCERTINCDIR = $(CONCERTDIR)/include
 CPLEXINCDIR   = $(CPLEXDIR)/include
-LEMONINCDIR   = $(LEMONDIR)/include
+#LEMONINCDIR   = $(LEMONDIR)/include
 
-CCLNFLAGS = -lconcert -lilocplex -lcplex -lemon -lm -lpthread
+CCLNFLAGS = -lconcert -lilocplex -lcplex -lm -lpthread #-lemon 
 
-CCFLAGS = $(CCOPT) -I$(CPLEXINCDIR) -I$(CONCERTINCDIR) -I$(LEMONINCDIR)
+CCFLAGS = $(CCOPT) -I$(CPLEXINCDIR) -I$(CONCERTINCDIR) #-I$(LEMONINCDIR)
 
 
 
@@ -61,14 +61,14 @@ CCFLAGS = $(CCOPT) -I$(CPLEXINCDIR) -I$(CONCERTINCDIR) -I$(LEMONINCDIR)
 
 all: VRP_MTZ
 
-Graph.o: Graph_AK.cpp Graph_AK.h
-	$(CCC) -c $(CCFLAGS) $(CCLNDIRS) -c Graph_AK.cpp -o Graph_AK.o
+Graph_AK.o: ../Graph_AK.cpp ../Graph_AK.h
+	$(CCC) -c $(CCFLAGS) $(CCLNDIRS) -c ../Graph_AK.cpp -o ../Graph_AK.o
 
 VRP_MTZ.o: VRP_MTZ.cpp
 	$(CCC) -c $(CCFLAGS) $(CCLNDIRS) VRP_MTZ.cpp
 
-VRP_MTZ: VRP_MTZ.o  Graph_AK.o 
-	$(CCC) $(CCFLAGS) $(CCLNDIRS) VRP_MTZ.o Graph_AK.o -o VRP_MTZ $(CCLNFLAGS)
+VRP_MTZ: VRP_MTZ.o  ../Graph_AK.o 
+	$(CCC) $(CCFLAGS) $(CCLNDIRS) VRP_MTZ.o ../Graph_AK.o -o VRP_MTZ $(CCLNFLAGS)
 
 clean:
 	rm -f *.o VRP_MTZ

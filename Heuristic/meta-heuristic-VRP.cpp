@@ -22,7 +22,7 @@ void script_metaheuristic(string path){
             Graph_AK * g = new Graph_AK(path+"/"+f_name);
 			float value = g->run_metaheuristic();
 			fic<<f_name<<" "<<value<<endl;
-			g->write_dot_G(path+"/plots/"+f_name,g->metaheuristic_routes_tab);
+			//g->write_dot_G(path+"/plots/"+f_name,g->metaheuristic_routes_tab);
 			string pathing = path+"/plots/";  // && neato -Tpdf -o "+f_name+"_G.pdf"+" "+f_name+"_G.dot";
 //			system(cmd.c_str());
 			string cmd = "neato -Tpdf -o "+pathing+f_name+"_G.pdf"+" "+pathing+f_name+"_G.dot";
@@ -33,15 +33,23 @@ void script_metaheuristic(string path){
     closedir(rep);
 }
 
-int main(){
+int main(int argc, char**argv){
 
-	string filename = "Instances/A/A-n55-k9";//Instances/Vrp-Set-X/X\\X-n200-k36";
-	Graph_AK * g = new Graph_AK(filename+".vrp");
-//
+	string name, nameext;
+
+	if(argc!=2){
+		cerr<<"Error arguments"<<endl;
+		return 1;
+	}
+	name=argv[1];
+	nameext=name+".vrp";
+
+	Graph_AK * g = new Graph_AK(nameext);
+
 	float value = g->run_metaheuristic();
-	printf("\nbest solution %.2f", value);
-//
-//	g->write_dot_G(filename,g->metaheuristic_routes_tab);
+	printf("\nbest solution %.2f\n", value);
+
+	//	g->write_dot_G(filename,g->metaheuristic_routes_tab);
 
 
 

@@ -1,6 +1,7 @@
 
+#include "../Graph_AK.h"
+
 #include <ilcplex/ilocplex.h>
-#include "Graph_AK.h"
 #include <list>
 
 
@@ -201,7 +202,6 @@ void start_plne(Graph_AK * g, int m,string filename){
 int main (int argc, char**argv){
 
     string name, nameext, nameextsol;
-    int i,k;
 
     vector<int> sol;
 
