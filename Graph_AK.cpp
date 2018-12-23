@@ -2,8 +2,11 @@
 #include <string>
 #include <stdio.h>
 #include <iostream>
+#include <sstream>
 #include <fstream>
 #include <math.h>
+
+#define GRAPHVIZ "$PATHTUTOMIP/graphviz-2.40.1/bin/"
 
 void Graph_AK::print_distance_matrix() {
 	for (int i = 0; i < n; i++) {
@@ -17,7 +20,7 @@ void Graph_AK::print_distance_matrix() {
 
 Graph_AK::Graph_AK (string vrp_filename) {
 
-  ifstream fic(vrp_filename);
+  ifstream fic(vrp_filename.c_str());
 
   if (!(fic)){
     cerr<<"Error occurred"<<endl;
@@ -67,9 +70,7 @@ Graph_AK::Graph_AK (string vrp_filename) {
   fic.close();
 
   initialize_distance_matrix();
-
-
-  print_distance_matrix();
+  //print_distance_matrix();
 }
 
 void Graph_AK::initialize_distance_matrix(){
@@ -102,11 +103,10 @@ void swap(vector<int> & route, int i, int j){
 	route[j] = tmp;
 }
 
-void copy(vector<int> source, vector<int> & destination){
+void copy(vector<int> source, vector<int> & destination){        //suppose que l'allocation de destination est faite
 	for (unsigned int i = 0; i < source.size(); i++)
 		destination[i] = source[i];
 }
-
 
 float Graph_AK::two_opt(vector<int> & route){
 
@@ -147,7 +147,105 @@ float Graph_AK::two_opt(vector<int> & route){
 	return best_cost;
 }
 
+bool Graph_AK::is_realizable(vector<int> route){
+	float sum_of_demands = 0.;
+	for (unsigned int i = 0; i < route.size(); i++)
+		sum_of_demands += demands_tab[route[i]];
+	return sum_of_demands <= capacity;
+}
 
+void Graph_AK::initialize_metaheuristic_tabs(){
+	metaheuristic_evaluation_tab = vector<float>(n, 0.);
+	metaheuristic_routes_tab = vector< vector<int> >(n, vector<int>(0));
+	metaheuristic_position_tab = vector<int>(n, 0);
+	for (int i = 0; i < n; i++){
+		if (i != id_depot){
+			metaheuristic_routes_tab[i] = vector<int>(1, i);
+			metaheuristic_evaluation_tab[i] = two_opt(metaheuristic_routes_tab[i]);
+			metaheuristic_position_tab[i] = i;
+		}
+	}
+}
+
+void Graph_AK::print_solution() {
+	for (int r = 1; r < n; r++) {
+		printf("\nTournée %d : ", r);
+		if (metaheuristic_routes_tab[r].size() != 0) {
+			for (unsigned int c = 0; c < metaheuristic_routes_tab[r].size(); c++)
+				printf("%d ", metaheuristic_routes_tab[r][c]);
+			printf("(%.1f)\n", cost_TSP(metaheuristic_routes_tab[r]));
+		}
+	}
+}
+
+float Graph_AK::run_metaheuristic(){
+	initialize_metaheuristic_tabs();
+	/* CALCUL DE LA BEST SOLUTION INITIALE (1 CLIENT = 1 TOURNÉE)*/
+	float best_solution_value = 0.;
+	for (int i = 0; i < n; i++)
+		best_solution_value += metaheuristic_evaluation_tab[i];
+//	printf("\nSolution initiale : %1.f ", best_solution_value);
+	/*FIN CALCUL BEST SOLUTION INITIALE */
+	bool globally_improved = true;              // après toutes les tentatives de changement de tournées à tous les clients
+	// pour l'ordre dans lequel on va tenter les changements de tournées pour les clients, nous retenons l'ordre croissant 1 à n-1 : HYP : 0 est le dépôt.
+	vector<int> changing_route_client_order;
+	for (int i = 0; i < n; i++)
+		if (i != id_depot)
+			changing_route_client_order.push_back(i);
+	//fin ordre des clients à considérer
+ 	while (globally_improved){
+ 		globally_improved = false;
+ 		for (unsigned int i = 0; i < changing_route_client_order.size(); i++){
+ 			int client_id = changing_route_client_order[i];
+ 			int client_position = metaheuristic_position_tab[client_id];
+ 			for (int r = 0; r < n; r++){
+ 				if (r != client_position && metaheuristic_routes_tab[r].size() != 0){           //si la tournée r n'est pas vide et n'est pas la tournée du client
+ 					/* DÉBUT DE LA SIMULATION*/
+ 					vector <int> leaving_route(0);
+ 					vector <int> coming_route(metaheuristic_routes_tab[r].size());
+ 					/*INSTANCIATION DE LEAVING ROUTE*/
+ 					for (unsigned int l = 0; l < metaheuristic_routes_tab[client_position].size(); l++)
+ 						if (metaheuristic_routes_tab[client_position][l] != client_id)
+ 							leaving_route.push_back(metaheuristic_routes_tab[client_position][l]);
+ 					/*FIN INSTANCIATION DE LEAVING ROUTE*/
+ 					/*INSTANCIATION DE COMING ROUTE*/
+ 					copy(metaheuristic_routes_tab[r], coming_route);					///AUTANT FAIRE LE TEST DE REALISABILITE DE LA TOURNEE AVANT DE COPIER
+ 					coming_route.push_back(client_id);
+ 					/*FIN INSTANCIATION DE COMING ROUTE*/
+ 					if (!is_realizable(coming_route))
+ 						continue;
+ 					float leaving_route_2opt_cost = two_opt(leaving_route);
+ 					float coming_route_2opt_cost = two_opt(coming_route);
+ 					float new_global_cost = leaving_route_2opt_cost + coming_route_2opt_cost;
+ 					for (int ev = 0; ev < n; ev++){
+ 						if (ev != client_position && ev != r)
+ 							new_global_cost += metaheuristic_evaluation_tab[ev];               // ON A BESOIN QUE DES 2 NVELLES TOURNEES a comparé avec l'ancienne tournee
+ 					}
+ 					if (new_global_cost < best_solution_value){
+ 						metaheuristic_routes_tab[client_position] = leaving_route;
+ 						metaheuristic_routes_tab[r] = coming_route;
+ 						metaheuristic_evaluation_tab[client_position] = leaving_route_2opt_cost;
+ 						metaheuristic_evaluation_tab[r] = coming_route_2opt_cost;
+ 						metaheuristic_position_tab[client_id] = r;
+ 						if (metaheuristic_routes_tab[client_position].size() == 0) metaheuristic_routes_tab[client_position] = vector<int>(0);
+ 						globally_improved = true;
+ 						best_solution_value = new_global_cost;                                  //MAIS ICI LE COST GLOBAL
+// 						printf("\nAmélioration : nouveau coût %.1f", best_solution_value);
+// 						print_solution();
+ 					}else{
+// 						printf("\nTentative de changement de tournée à %d (non améliorante) : %1.f", client_id, new_global_cost);
+ 					}
+ 				}
+ 				if (globally_improved) break; //premier changement améliorant
+ 			}
+ 			if (globally_improved) break;  //premier changement ameliorant
+ 		}
+
+ 	}
+//	print_solution();
+	return best_solution_value;
+
+}
 
 float Graph_AK::euclidean_distance(int i, int j){
 	pair<int,int> xi = x_y_tab[i];
@@ -156,3 +254,80 @@ float Graph_AK::euclidean_distance(int i, int j){
 }
 
 
+
+
+//void Graph_AK::write_dot_G(string InstanceName,vector<vector<int> > routes){
+//  ostringstream FileName;
+//  FileName.str("");
+//  FileName <<InstanceName.c_str() << "_G.dot";
+//
+//  ofstream fic(FileName.str().c_str());
+//  vector <string> colors;
+//    colors.push_back("darkorchid");
+//    colors.push_back("darksalmon");
+//    colors.push_back("gold");
+//    colors.push_back("plum");
+//    colors.push_back("tan");
+//    colors.push_back("darkorange");
+//    colors.push_back("rosybrown");
+//    colors.push_back("darkolivegreen3");
+//    colors.push_back("lightblue3");
+//    colors.push_back("firebrick");
+//    colors.push_back("lightslategray");
+//    colors.push_back("lightskyblue1");
+//    colors.push_back("gray36");
+//    colors.push_back("green");
+//    colors.push_back("blue");
+//    colors.push_back("red");
+//    colors.push_back("cyan");
+//    colors.push_back("yellow");
+//    colors.push_back("magenta");
+//    colors.push_back("violetred");
+//
+//
+//
+//  if(routes.size() > colors.size()){
+//    cout<<"We only have "<<colors.size()<<" colors and this solutions needs "<<routes.size()<<" colors... some nodes will have wrong colors!"<<endl;
+//  }
+//
+//  fic<<"graph G {"<<endl;
+//  //depot node
+//  fic<<"  "<<id_depot<<"[shape = box, label = \"depot\", style = filled ];"<<endl;
+//  vector< vector<int> > routes_without_empty_route;
+//  for(unsigned int i = 0; i<routes.size(); i++){
+//	  if(routes[i].size() > 0){
+//		  routes_without_empty_route.push_back(routes[i]);
+//	  }
+//  }
+//  routes = routes_without_empty_route;
+//  int id_color = 0;
+//  for(unsigned int i=0 ; i<routes_without_empty_route.size() ; i++){
+//    id_color += 1;
+//    int node_sup, node_inf = id_depot;
+//
+//    for(unsigned int j = 0; j < routes_without_empty_route[i].size(); j++){
+//      int node = routes_without_empty_route[i][j];
+//      string label = "\""+to_string(node)+" ("+(int(demands_tab[node])) + ")\"";
+//      fic<<"  "<<node<<"[shape = ellipse, label = "<<label<<", style = filled , fillcolor = "<<colors[id_color]<<" ];"<<endl;
+//      node_sup = node;
+////      string len = "\""+to_string(distance_mat[node_inf][node_sup])+"\"";
+//	  fic<<"  \""<<node_inf<<"\"--\""<<node_sup<<"\"[color = "<<colors[id_color]<<"];"<<endl;
+//	  node_inf = node;
+//    }
+////    string len = "\""+to_string(distance_mat[node_inf][id_depot])+"\"";
+//
+//    fic<<"  \""<<node_inf<<"\"--\""<<id_depot<<"\"[color = "<<colors[id_color]<<"];"<<endl;
+//
+//  }
+//
+//  fic<<"}"<<endl;
+//
+//  fic.close();
+//
+//  ostringstream commande;
+//  commande.str("");
+//  commande<<GRAPHVIZ<<"dot -Tpdf -o "<<InstanceName.c_str() << "_G.pdf "<< FileName.str().c_str()<<endl;
+//  cout<<commande.str().c_str();
+//  if(system(commande.str().c_str())){cout<<"PDF generated successfully"<<endl;}
+//  return;
+//}

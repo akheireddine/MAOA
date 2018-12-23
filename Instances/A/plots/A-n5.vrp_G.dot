@@ -1,0 +1,13 @@
+graph G {
+  0[shape = box, label = "depot", style = filled ];
+  1[shape = ellipse, label = "1 (10)", style = filled , fillcolor = darksalmon ];
+  "0"--"1"[color = darksalmon];
+  "1"--"0"[color = darksalmon];
+  3[shape = ellipse, label = "3 (1)", style = filled , fillcolor = gold ];
+  "0"--"3"[color = gold];
+  2[shape = ellipse, label = "2 (5)", style = filled , fillcolor = gold ];
+  "3"--"2"[color = gold];
+  4[shape = ellipse, label = "4 (4)", style = filled , fillcolor = gold ];
+  "2"--"4"[color = gold];
+  "4"--"0"[color = gold];
+}
