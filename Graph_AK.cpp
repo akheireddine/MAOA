@@ -256,6 +256,74 @@ float Graph_AK::euclidean_distance(int i, int j){
 
 
 
+
+void Graph_AK::construct_Undirected_Lemon_Graph(){
+
+  for (int i = 0; i < n ; i++){
+    LGU_name_node[i] = L_GU.addNode();
+    L_rtnmap[L_GU.id(LGU_name_node[i])] = i;
+  }
+
+  for (int i = 0; i < n - 1; i++){
+    for (int j = i + 1; j < n; j++ ){
+    	LGU_name_link[i][j] = L_GU.addEdge(LGU_name_node[i],LGU_name_node[j]);
+    }
+  }
+
+}
+
+
+
+
+
+double Graph_AK::undirected_MinimumCut(list<int>& W){
+
+  lemon::ListGraph::EdgeMap<int> L_cost_int(L_GU);
+  lemon::ListGraph::NodeMap<bool> mincut(L_GU);
+  double mincutvalue;
+
+  for (int i = 0;i < n - 1 ; i++){
+	  for(int j = i + 1; j < n ; j++){
+		  L_cost_int.set(LGU_name_link[i][j],distance_mat[i][j]);
+	  }
+  }
+
+  lemon::NagamochiIbaraki<lemon::ListGraph, lemon::ListGraph::EdgeMap<int> > L_NI(L_GU,L_cost_int);
+
+  L_NI.run();
+
+  mincutvalue = L_NI.minCutMap (mincut)/(PREC*1.0);
+
+  W.clear();
+  for (int i = 0; i < n; i++)
+    if (mincut[LGU_name_node[i]])
+    	W.push_back(i);
+
+  #ifdef OUTPUT_GRAPH
+  cout<<"MinCut value : "<<mincutvalue<<endl;
+  cout<<"MinCut induced by : ";
+  for (int i=0;i<n;i++)
+    if (mincut[LGU_name_node[i]])
+    	cout<<i<<" ";
+  cout<<endl;
+  #endif
+
+  return mincutvalue;
+
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
 //void Graph_AK::write_dot_G(string InstanceName,vector<vector<int> > routes){
 //  ostringstream FileName;
 //  FileName.str("");

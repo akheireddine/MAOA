@@ -16,7 +16,16 @@ private:
     vector <int> metaheuristic_position_tab;
     vector < vector<int> > metaheuristic_routes_tab;
 
+    lemon::ListGraph L_GU;
+    vector<lemon::ListGraph::Node> LGU_name_node;
+    vector<lemon::ListGraph::Edge> LGU_name_link;
+    map<int, int> L_rtnmap;
+
 public:
+
+    void construct_Undirected_Lemon_Graph();
+	double undirected_MinimumCut(list<int>& W);
+
 
     Graph_AK(string vrp_filename);
     float cost_TSP(vector<int> route);
