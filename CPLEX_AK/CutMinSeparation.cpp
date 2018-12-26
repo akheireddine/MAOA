@@ -12,15 +12,15 @@ bool  find_ViolatedCutMinCst(IloEnv env, Graph_AK & G,  vector<vector<IloNumVar>
 
   int i,j;
   vector<int> W;
-  list<int>::const_iterator it;
+  vector<int>::const_iterator it;
   vector<int> V_W;
   float test;
 
-  V_W.resize(G->get_n());
+  V_W.resize(G.get_n());
 
   // Find a minimum cut
 
-  test = G->undirected_MinimumCut(W);
+  test = G.undirected_MinimumCut(W);
 
   //cout<<"test = "<<test<<endl;
 
@@ -29,7 +29,7 @@ bool  find_ViolatedCutMinCst(IloEnv env, Graph_AK & G,  vector<vector<IloNumVar>
 
     IloExpr expr(env);
     j = 0;
-    for (int i = 0; i < G->get_n() ; i++){
+    for (int i = 0; i < G.get_n() ; i++){
 		if (W[j] == i)
 			V_W[i] = 1;
 		else
@@ -37,7 +37,7 @@ bool  find_ViolatedCutMinCst(IloEnv env, Graph_AK & G,  vector<vector<IloNumVar>
     }
 
     for (it = W.begin(); it != W.end(); it++){
-      for (j = 0; j < G->get_n() ; j++)
+      for (j = 0; j < G.get_n() ; j++)
     	if (V_W[j] == 0)
     		expr+=x[*it][j];
     }

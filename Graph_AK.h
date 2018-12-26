@@ -28,7 +28,7 @@ private:
     vector<lemon::ListGraph::Node> LGU_name_node;
 
     //UNUSED
-    vector<lemon::ListGraph::Edge> LGU_name_link;
+    vector<vector<lemon::ListGraph::Edge> > LGU_name_link;
     map<int, int> L_rtnmap;
 
 public:

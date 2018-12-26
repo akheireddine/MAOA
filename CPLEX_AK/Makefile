@@ -67,11 +67,14 @@ Graph_AK.o: ../Graph_AK.cpp ../Graph_AK.h
 CutMinSeparation.o: CutMinSeparation.cpp ../Graph_AK.h
 	$(CCC) -c $(CCFLAGS) $(CCLNDIRS) -c CutMinSeparation.cpp
 
+#BC_VRP.o: BC_VRP.cpp ../Graph_AK.h
+#	$(CCC) -c $(CCFLAGS) $(CCLNDIRS) -c BC_VRP.cpp
+
 VRP_MTZ.o: VRP_MTZ.cpp
 	$(CCC) -c $(CCFLAGS) $(CCLNDIRS) VRP_MTZ.cpp
 
-VRP_MTZ: VRP_MTZ.o  ../Graph_AK.o 
-	$(CCC) $(CCFLAGS) $(CCLNDIRS) VRP_MTZ.o ../Graph_AK.o  CutMinSeparation.o -o VRP_MTZ $(CCLNFLAGS)
+VRP_MTZ: VRP_MTZ.o  ../Graph_AK.o CutMinSeparation.o
+	$(CCC) $(CCFLAGS) $(CCLNDIRS) VRP_MTZ.o ../Graph_AK.o CutMinSeparation.o -o VRP_MTZ $(CCLNFLAGS)
 
 clean:
 	rm -f *.o VRP_MTZ
