@@ -2,34 +2,51 @@
 #include <vector>
 #include"../Graph_AK.h"
 
-#define epsilon 0.00001
+#define epsilon 0.01
 
 using namespace::std;
 
-void  find_ViolatedCutMinCst_INTEGER(IloEnv env, Graph_AK & G,  vector<vector<IloNumVar> >& x, vector<float>&fracsol, list<IloRange> & L_ViolatedCst){
 
-  vector<int> sol;
-  list<int> L;
-  int i;
 
-  sol.resize(G->get_n());
+bool  find_ViolatedCutMinCst(IloEnv env, Graph_AK & G,  vector<vector<IloNumVar> >& x,  IloRange & ViolatedCst){
 
-//   Some "integer" value of CPLEX are not exactly integer...
-  for (i=0;i<G->get_n();i++)
-	if (fracsol[i]>epsilon)
-		sol[i]=1;
-	else sol[i]=0;
+  int i,j;
+  vector<int> W;
+  list<int>::const_iterator it;
+  vector<int> V_W;
+  float test;
 
-  if (G->return_cutmin(sol,L)){
-	// Found a violated inequality -> add to violatedCte structure
-	IloExpr expr(env);
-	for(list<int>::const_iterator it=L.begin();it!=L.end();it++)
-	  expr+=x[*it];
+  V_W.resize(G->get_n());
 
-	i=L.size();
-	IloRange newCte = IloRange(expr <= i - 1);
-	L_ViolatedCst.push_back(newCte);
+  // Find a minimum cut
 
+  test = G->undirected_MinimumCut(W);
+
+  //cout<<"test = "<<test<<endl;
+
+  if (test < 2-epsilon) {
+    // Found a violated inequality
+
+    IloExpr expr(env);
+    j = 0;
+    for (int i = 0; i < G->get_n() ; i++){
+		if (W[j] == i)
+			V_W[i] = 1;
+		else
+			V_W[i]=0;
+    }
+
+    for (it = W.begin(); it != W.end(); it++){
+      for (j = 0; j < G->get_n() ; j++)
+    	if (V_W[j] == 0)
+    		expr+=x[*it][j];
+    }
+
+
+    ViolatedCst = IloRange(expr >= 1);
+    return true;
   }
+
+  return false;
 
 }

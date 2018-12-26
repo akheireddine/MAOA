@@ -3,21 +3,24 @@
 
 #include <ilcplex/ilocplex.h>
 #include <list>
+#include "BC_VRP.h"
 
 
-#define epsilon 0.000000001
+//#define epsilon 0.000000001
 using namespace std;
 
 
 
-void start_plne(Graph_AK * g, int m,string filename){
+pair<IloEnv,IloCplex> model_plne(Graph_AK * g, string filename, int m, vector<vector<IloNumVar > > & x){
+
+
 
     IloEnv   env;
     IloModel model(env);
     int n = g->get_n();
     int nb_var = n*(n - 1);
 
-    vector<vector<IloNumVar > > x(nb_var,vector< IloNumVar >(nb_var));
+    x.resize(nb_var,vector< IloNumVar >(nb_var));
 
 
 
@@ -139,46 +142,41 @@ void start_plne(Graph_AK * g, int m,string filename){
 
   IloCplex cplex(model);
 
+  return make_pair(env,cplex);
+
+}
+
+
+
+
+void write_solution(IloEnv env, IloCplex cplex, vector<vector<IloNumVar> > x, Graph_AK * g , string filename){
 
   cout<<"Wrote LP on file"<<endl;
   cplex.exportModel("sortie.lp");
 
   if ( !cplex.solve() ) {
-     env.error() << "Failed to optimize LP" << endl;
-     exit(1);
+	 env.error() << "Failed to optimize LP" << endl;
+	 exit(1);
    }
-
 
    env.out() << "Solution status = " << cplex.getStatus() << endl;
    env.out() << "Solution value  = " << cplex.getObjValue() << endl;
 
-
-
    list< pair<int,int> > Lsol;
 
-   for(int i = 0; i < n; i++){
-      for (int j=0;j< n ;j++){
-       if (i!=j  /*and i!= depot and j!= depot*/){
-//    	   printf("x_%d_%d = %f\n", i, j, cplex.getValue(x[i][j]));
-    	 // cout<<"x_"<<i<<"_"<<j<<" = "<<cplex.getValue(x[i][j])<<endl;
-    	   if (cplex.getValue(x[i][j]) == 1 ){//>1-epsilon){
-    		   Lsol.push_back(make_pair(i,j));
-    	   }
-
-       }
-      }
+   for(int i = 0; i < x.size() ; i++){
+	  for (int j=0;j< x.size() ;j++){
+	   if (i!=j ){
+		   if (cplex.getValue(x[i][j]) == 1 ){//>1-epsilon){
+			   Lsol.push_back(make_pair(i,j));
+		   }
+	   }
+	  }
    }
 
 
-   //////////////
-   //////  CPLEX's ENDING
-   //////////////
-
    env.end();
 
-   //////////////
-   //////  OUTPUT
-   //////////////
 
    list<pair<int,int> >::const_iterator itp;
 
@@ -186,25 +184,30 @@ void start_plne(Graph_AK * g, int m,string filename){
    ofstream ficsol((filename+".ak_cplex").c_str());
    double best_length=0;
    for(itp = Lsol.begin(); itp!=Lsol.end();itp++) {
-     best_length += g->get_distance(itp->first,itp->second);
-     ficsol<<itp->first<<" "<<itp->second<<endl;
+	 best_length += g->get_distance(itp->first,itp->second);
+	 ficsol<<itp->first<<" "<<itp->second<<endl;
    }
 
    ficsol.close();
 
    cout<<"Tour found of value : "<<best_length<<endl;
+}
 
+
+
+void branch_and_cut(Graph_AK & g, vector<vector<IloNumVar > > & x, IloEnv env, IloCplex & cplex){
+
+	  /// ADD SEPARATION CALLBACK
+	  cplex.use(UsercutCutMinSeparation(env,g,x));
 
 }
 
 
 
+
 int main (int argc, char**argv){
 
-    string name, nameext, nameextsol;
-
-    vector<int> sol;
-
+    string name;
 
     if(argc!=3){
         cerr<<"Error arguments"<<endl; 
@@ -212,14 +215,19 @@ int main (int argc, char**argv){
     }
 
     name=argv[1];
-    nameext=name+".vrp";
-//    nameextsol=name+".ak";
-
-    Graph_AK * g = new Graph_AK(nameext);
     int m = atoi(argv[2]);
 
-    start_plne(g,m,name);
 
+    Graph_AK * g = new Graph_AK(name+".vrp");
+    vector<vector<IloNumVar > > x;
+
+
+    pair<IloEnv,IloCplex> env_cplex;
+    env_cplex = model_plne(g, name, m, x);
+
+    branch_and_cut(*g, x , env_cplex.first,env_cplex.second);
+
+    write_solution(env_cplex.first, env_cplex.second, x, g, name);
 
 
     return 0;

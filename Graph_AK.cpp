@@ -5,6 +5,7 @@
 #include <sstream>
 #include <fstream>
 #include <math.h>
+#include <lemon/lgf_writer.h>
 
 #define GRAPHVIZ "$PATHTUTOMIP/graphviz-2.40.1/bin/"
 
@@ -273,22 +274,22 @@ void Graph_AK::construct_Undirected_Lemon_Graph(){
 }
 
 
+#define PREC 1000 //Pour la precision dans Cplex
 
 
+double Graph_AK::undirected_MinimumCut(vector<int >& W){
 
-double Graph_AK::undirected_MinimumCut(list<int>& W){
-
-  lemon::ListGraph::EdgeMap<int> L_cost_int(L_GU);
+  lemon::ListGraph::EdgeMap<float> L_cost(L_GU);
   lemon::ListGraph::NodeMap<bool> mincut(L_GU);
   double mincutvalue;
 
-  for (int i = 0;i < n - 1 ; i++){
+  for (int i = 0; i < n - 1 ; i++){
 	  for(int j = i + 1; j < n ; j++){
-		  L_cost_int.set(LGU_name_link[i][j],distance_mat[i][j]);
+		  L_cost.set(LGU_name_link[i][j],x_value[i][j] * PREC);
 	  }
   }
 
-  lemon::NagamochiIbaraki<lemon::ListGraph, lemon::ListGraph::EdgeMap<int> > L_NI(L_GU,L_cost_int);
+  lemon::NagamochiIbaraki<lemon::ListGraph, lemon::ListGraph::EdgeMap<float> > L_NI(L_GU,L_cost);
 
   L_NI.run();
 
@@ -313,6 +314,9 @@ double Graph_AK::undirected_MinimumCut(list<int>& W){
 }
 
 
+void Graph_AK::set_x_value(vector< vector<float> > cost_x){
+	x_value = cost_x;
+}
 
 
 

@@ -1,6 +1,10 @@
 #include <vector>
 #include <string>
 
+#include <lemon/list_graph.h>
+#include <lemon/concepts/maps.h>
+#include <lemon/nagamochi_ibaraki.h>
+
 using namespace std;
 
 class Graph_AK {
@@ -16,16 +20,22 @@ private:
     vector <int> metaheuristic_position_tab;
     vector < vector<int> > metaheuristic_routes_tab;
 
+    vector <vector <float> > x_value;
+    vector< vector<int> > cplex_routes_tab;
+
+
     lemon::ListGraph L_GU;
     vector<lemon::ListGraph::Node> LGU_name_node;
+
+    //UNUSED
     vector<lemon::ListGraph::Edge> LGU_name_link;
     map<int, int> L_rtnmap;
 
 public:
 
     void construct_Undirected_Lemon_Graph();
-	double undirected_MinimumCut(list<int>& W);
-
+	double undirected_MinimumCut(vector< int >& W);
+	void set_x_value(vector< vector<float> > cost_x);
 
     Graph_AK(string vrp_filename);
     float cost_TSP(vector<int> route);
