@@ -73,7 +73,7 @@ CutMinSeparation.o: CutMinSeparation.cpp ../Graph_AK.h
 VRP_MTZ.o: VRP_MTZ.cpp
 	$(CCC) -c $(CCFLAGS) $(CCLNDIRS) VRP_MTZ.cpp
 
-VRP_MTZ: VRP_MTZ.o  ../Graph_AK.o CutMinSeparation.o
+VRP_MTZ: VRP_MTZ.o Graph_AK.o CutMinSeparation.o 
 	$(CCC) $(CCFLAGS) $(CCLNDIRS) VRP_MTZ.o ../Graph_AK.o CutMinSeparation.o -o VRP_MTZ $(CCLNFLAGS)
 
 clean:
