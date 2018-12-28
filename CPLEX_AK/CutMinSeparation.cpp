@@ -23,25 +23,42 @@ bool  find_ViolatedCutMinCst(IloEnv env, Graph_AK & G,  vector<vector<IloNumVar>
 
   //cout<<"test = "<<test<<endl;
 
-  if (test < 1 - epsilon) {
+  if (test < 1 - epsilon ) {
     // Found a violated inequality
 
+	bool W_has_depot = false;
     IloExpr expr(env);
+
     for (i = 0; i < G.get_n() ; i++){
 		V_W[i]=0;
     }
-    for(i = 0; i < W.size(); i++)
+
+    for(i = 0; i < W.size(); i++){
+    	if (W[i] == G.get_depot())
+    		W_has_depot = true;
     	V_W[W[i]] = 1;
+    }
+
+    if(W_has_depot and (G.get_n() - W.size()) < 2){
+    	return false;
+    }
+    if(!W_has_depot and W.size() < 2)
+    	return false;
 
     for (i = 0; i < W.size(); i++){
-      for (j = 0; j < G.get_n() ; j++)
+      for (j = 0; j < G.get_n() ; j++){
     	if (V_W[j] == 0 and (W[i] != j)){
-    		expr += x[W[i]][j];
+    		if(W_has_depot){
+    			expr += x[j][W[i]];
+    		}
+    		else{
+    			expr += x[W[i]][j];
+    		}
     	}
+      }
     }
 
     ViolatedCst = IloRange(expr >= 1);
-    printf(" test\n");
 
     return true;
   }

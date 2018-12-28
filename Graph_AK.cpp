@@ -7,6 +7,9 @@
 #include <math.h>
 #include <lemon/lgf_writer.h>
 
+
+#include <ctime>
+
 #define GRAPHVIZ "$PATHTUTOMIP/graphviz-2.40.1/bin/"
 
 void Graph_AK::print_distance_matrix() {
@@ -296,22 +299,22 @@ double Graph_AK::undirected_MinimumCut(vector<int >& W){
   for (int i = 0; i < n ; i++){
 	  for(int j = i + 1; j < n ; j++){
 //		  if(i != id_depot or j != id_depot)
-			  L_cost.set(LGU_name_link[i][j],x_value[i][j] * PREC);
+			  L_cost.set(LGU_name_link[i][j],(x_value[i][j] + x_value[j][i]) * PREC);
 	  }
   }
 
   lemon::NagamochiIbaraki<lemon::ListGraph, lemon::ListGraph::EdgeMap<float> > L_NI(L_GU,L_cost);
+  printf("Running\n");
+
   L_NI.run();
 
-  mincutvalue = L_NI.minCutMap (mincut)/(PREC*1.0);
+  mincutvalue = L_NI.minCutMap (mincut);///(PREC*1.0);
   printf(" mincut %f\n",mincutvalue);
-
+  mincutvalue /= (PREC*1.0);
   W.clear();
   for (int i = 0; i < n; i++){
 	if ( /*i != id_depot and */mincut[LGU_name_node[i]]){
 		W.push_back(i);
-	} else {
-		printf(" %d \n",i);
 	}
   }
 
@@ -336,9 +339,9 @@ void Graph_AK::set_x_value(vector< vector<float> > cost_x){
 //	for (int i = 0; i < n; i++) {
 //		for (int j = 0; j < n; j++) {
 //			if(x_value[i][j] > 0)
-//			printf("%.1f ", cost_x[i][j]);
+//			printf("%f ", cost_x[i][j]);
 //		}
-//		printf("\n");
+//		printf("\n\n");
 //	}
 //	printf("\n");
 }

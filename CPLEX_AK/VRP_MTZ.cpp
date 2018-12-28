@@ -10,7 +10,7 @@ using namespace std;
 #define epsilon_cplex 0.00001
 
 #define epsilon 0.01
-#define OUTPUT
+//#define OUTPUT
 
 
 
@@ -50,7 +50,6 @@ ILOUSERCUTCALLBACK2(UsercutCutMinSeparation, Graph_AK &, G, vector<vector<IloNum
 		cout<< ViolatedCst << endl;
 	#endif
     add(ViolatedCst,IloCplex::UseCutPurge);   // UseCutForce UseCutPurge UseCutFilter
-
   }
     else {
 	#ifdef OUTPUT
@@ -79,7 +78,7 @@ pair<IloEnv,IloCplex> model_plne(Graph_AK * g, string filename, int m, vector<ve
     for(int i = 0; i < n; i++){
     	for(int j = 0; j < n; j++){
     		if( i != j){
-				x[i][j] = IloNumVar(env, 0.0, 1.1, ILOINT);
+				x[i][j] = IloNumVar(env, 0.0, 1.0, ILOINT);        //Aaaaaaaaaaaaaahhhhhhhhhhhhhhhh NIsssaaaaaaaaaaaaaaaaaaa
 				ostringstream varname;
 				varname.str("");
 				varname<<"x_"<<i<<"_"<<j;
@@ -130,7 +129,7 @@ pair<IloEnv,IloCplex> model_plne(Graph_AK * g, string filename, int m, vector<ve
 		IloExpr c3(env);
 		if(i != depot){
 			for(int j = 0; j < n ; j++){
-				if(j!=i /*and j!= depot*/){   // error?
+				if(j!=i/* and j!= depot*/){   // error?
 					c3 += x[i][j];
 				}
 			}
@@ -164,9 +163,10 @@ pair<IloEnv,IloCplex> model_plne(Graph_AK * g, string filename, int m, vector<ve
 
 	for(int i = 0; i < n ; i++){
 		for(int j = 0; j < n; j++){
-			if( (j != depot) and (i != depot) and (i != j)){
+			if( (j != depot) /*and (i != depot) */and (i != j)){
 				IloExpr mtz(env);
 				mtz = w[i] - w[j] - g->get_demand(i) + (g->get_capacity() + g->get_demand(i))*(1 - x[i][j]) ;
+				cout << mtz << endl;    //COUT
 				Constraints.add(mtz >= 0);
 				ostringstream nomcst;
 				nomcst.str("");
@@ -193,8 +193,7 @@ pair<IloEnv,IloCplex> model_plne(Graph_AK * g, string filename, int m, vector<ve
 
 
   IloCplex cplex(model);
-
-  cplex.use(UsercutCutMinSeparation(env, *g,x));
+ // cplex.use(UsercutCutMinSeparation(env, *g,x));
 
 
   cout<<"Wrote LP on file"<<endl;
@@ -223,20 +222,20 @@ pair<IloEnv,IloCplex> model_plne(Graph_AK * g, string filename, int m, vector<ve
 
    env.end();
 
-//
-//   list<pair<int,int> >::const_iterator itp;
-//
-//
-//   ofstream ficsol((filename+".ak_cplex").c_str());
-//   double best_length=0;
-//   for(itp = Lsol.begin(); itp!=Lsol.end();itp++) {
-//	 best_length += g->get_distance(itp->first,itp->second);
-//	 ficsol<<itp->first<<" "<<itp->second<<endl;
-//   }
-//
-//   ficsol.close();
-//
-//   cout<<"Tour found of value : "<<best_length<<endl;
+
+   list<pair<int,int> >::const_iterator itp;
+
+
+   ofstream ficsol((filename+".ak_cplex").c_str());
+   double best_length=0;
+   for(itp = Lsol.begin(); itp!=Lsol.end();itp++) {
+	 best_length += g->get_distance(itp->first,itp->second);
+	 ficsol<<itp->first<<" "<<itp->second<<endl;
+   }
+
+   ficsol.close();
+
+   cout<<"Tour found of value : "<<best_length<<endl;
 
 
 
@@ -247,58 +246,58 @@ pair<IloEnv,IloCplex> model_plne(Graph_AK * g, string filename, int m, vector<ve
 
 
 
-void write_solution(IloEnv env, IloCplex cplex, vector<vector<IloNumVar> > x, Graph_AK * g , string filename){
-
-  cout<<"Wrote LP on file"<<endl;
-  cplex.exportModel("sortie.lp");
-
-  if ( !cplex.solve() ) {
-	 env.error() << "Failed to optimize LP" << endl;
-	 exit(1);
-   }
-
-   env.out() << "Solution status = " << cplex.getStatus() << endl;
-   env.out() << "Solution value  = " << cplex.getObjValue() << endl;
-
-   list< pair<int,int> > Lsol;
-
-   for(unsigned int i = 0; i < x.size() ; i++){
-	  for (unsigned int j=0;j< x.size() ;j++){
-	   if (i!=j ){
-		   if (cplex.getValue(x[i][j]) == 1 ){//>1-epsilon){
-			   Lsol.push_back(make_pair(i,j));
-		   }
-	   }
-	  }
-   }
-
-
-   env.end();
-
+//void write_solution(IloEnv env, IloCplex cplex, vector<vector<IloNumVar> > x, Graph_AK * g , string filename){
 //
-//   list<pair<int,int> >::const_iterator itp;
+//  cout<<"Wrote LP on file"<<endl;
+//  cplex.exportModel("sortie.lp");
 //
-//
-//   ofstream ficsol((filename+".ak_cplex").c_str());
-//   double best_length=0;
-//   for(itp = Lsol.begin(); itp!=Lsol.end();itp++) {
-//	 best_length += g->get_distance(itp->first,itp->second);
-//	 ficsol<<itp->first<<" "<<itp->second<<endl;
+//  if ( !cplex.solve() ) {
+//	 env.error() << "Failed to optimize LP" << endl;
+//	 exit(1);
 //   }
 //
-//   ficsol.close();
+//   env.out() << "Solution status = " << cplex.getStatus() << endl;
+//   env.out() << "Solution value  = " << cplex.getObjValue() << endl;
 //
-//   cout<<"Tour found of value : "<<best_length<<endl;
-}
+//   list< pair<int,int> > Lsol;
+//
+//   for(unsigned int i = 0; i < x.size() ; i++){
+//	  for (unsigned int j=0;j< x.size() ;j++){
+//	   if (i!=j ){
+//		   if (cplex.getValue(x[i][j]) == 1 ){//>1-epsilon){
+//			   Lsol.push_back(make_pair(i,j));
+//		   }
+//	   }
+//	  }
+//   }
+//
+//
+//   env.end();
+//
+////
+////   list<pair<int,int> >::const_iterator itp;
+////
+////
+////   ofstream ficsol((filename+".ak_cplex").c_str());
+////   double best_length=0;
+////   for(itp = Lsol.begin(); itp!=Lsol.end();itp++) {
+////	 best_length += g->get_distance(itp->first,itp->second);
+////	 ficsol<<itp->first<<" "<<itp->second<<endl;
+////   }
+////
+////   ficsol.close();
+////
+////   cout<<"Tour found of value : "<<best_length<<endl;
+//}
 
 
 
-void branch_and_cut(Graph_AK & g, vector<vector<IloNumVar > > & x, IloEnv env, IloCplex & cplex){
-
-	  /// ADD SEPARATION CALLBACK
-	  cplex.use(UsercutCutMinSeparation(env,g,x));
-
-}
+//void branch_and_cut(Graph_AK & g, vector<vector<IloNumVar > > & x, IloEnv env, IloCplex & cplex){
+//
+//	  /// ADD SEPARATION CALLBACK
+//	  cplex.use(UsercutCutMinSeparation(env,g,x));
+//
+//}
 
 
 
