@@ -75,8 +75,9 @@ Graph_AK::Graph_AK (string vrp_filename) {
 
   initialize_distance_matrix();
   construct_Undirected_Lemon_Graph();
+//  print_distance_matrix();
 
-  //print_distance_matrix();
+
 }
 
 void Graph_AK::initialize_distance_matrix(){
@@ -336,14 +337,14 @@ double Graph_AK::undirected_MinimumCut(vector<int >& W){
 void Graph_AK::set_x_value(vector< vector<float> > cost_x){
 	x_value = cost_x;
 
-//	for (int i = 0; i < n; i++) {
-//		for (int j = 0; j < n; j++) {
-//			if(x_value[i][j] > 0)
-//			printf("%f ", cost_x[i][j]);
-//		}
-//		printf("\n\n");
-//	}
-//	printf("\n");
+	for (int i = 0; i < n; i++) {
+		for (int j = 0; j < n; j++) {
+			if(x_value[i][j] > 0)
+			printf("%f ", cost_x[i][j]);
+		}
+		printf("\n\n");
+	}
+	printf("\n");
 }
 
 

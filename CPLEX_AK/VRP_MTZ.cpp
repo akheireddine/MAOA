@@ -10,7 +10,7 @@ using namespace std;
 #define epsilon_cplex 0.00001
 
 #define epsilon 0.01
-//#define OUTPUT
+#define OUTPUT
 
 
 
@@ -87,10 +87,14 @@ pair<IloEnv,IloCplex> model_plne(Graph_AK * g, string filename, int m, vector<ve
     	}
     }
 
+    int depot = g->get_depot();
+
 	vector<IloNumVar> w(n);
 
 	for(int i = 0; i < n; i++){
-		w[i] = IloNumVar(env, 0.0, g->get_capacity(), ILOFLOAT);
+//		w[i] = IloNumVar(env, 0.0, g->get_capacity(), ILOFLOAT);
+		w[i] = IloNumVar(env, g->get_demand(i), g->get_capacity(), ILOFLOAT);
+
 		ostringstream nomvar;
 		nomvar.str("");
 		nomvar<<"w_"<<i;
@@ -101,7 +105,6 @@ pair<IloEnv,IloCplex> model_plne(Graph_AK * g, string filename, int m, vector<ve
     IloRangeArray Constraints(env);
     int nbcst = 0;
 
-    int depot = g->get_depot();
 	IloExpr c1(env), c2(env);
 
     for(int j = 0; j < n ; j++){
@@ -110,26 +113,27 @@ pair<IloEnv,IloCplex> model_plne(Graph_AK * g, string filename, int m, vector<ve
     		c2 += x[j][depot];
     	}
     }
-
     Constraints.add(c1 <= m);
     ostringstream nomcst;
 	nomcst.str("");
 	nomcst<<"(1)";
+	cout << "(1)" << Constraints[nbcst] << endl;
 	Constraints[nbcst].setName(nomcst.str().c_str());
 	nbcst++;
 
 	Constraints.add(c2 <= m);
 	nomcst.str("");
 	nomcst<<"(2)";
+	cout << "(2)" << Constraints[nbcst] << endl;
 	Constraints[nbcst].setName(nomcst.str().c_str());
 	nbcst++;
 
 
 	for(int i = 0; i < n; i++){
 		IloExpr c3(env);
-		if(i != depot){
+		if( (i != depot)){
 			for(int j = 0; j < n ; j++){
-				if(j!=i/* and j!= depot*/){   // error?
+				if( (j!=i) /*and j!= depot*/){   // error?
 					c3 += x[i][j];
 				}
 			}
@@ -137,6 +141,7 @@ pair<IloEnv,IloCplex> model_plne(Graph_AK * g, string filename, int m, vector<ve
 			ostringstream nomcst;
 			nomcst.str("");
 			nomcst<<"(3_"<<i<<")";
+			cout << "(3_"<<i<<")"<< Constraints[nbcst] << endl;
 			Constraints[nbcst].setName(nomcst.str().c_str());
 			nbcst++;
 		}
@@ -146,7 +151,7 @@ pair<IloEnv,IloCplex> model_plne(Graph_AK * g, string filename, int m, vector<ve
 		IloExpr c4(env);
 		if(j != depot){
 			for(int i = 0; i < n ; i++){
-				if(j!=i /*and i!= depot*/){   //error?
+				if((j!=i) /*and i!= depot*/){   //error?
 					c4 += x[i][j];
 				}
 			}
@@ -154,6 +159,7 @@ pair<IloEnv,IloCplex> model_plne(Graph_AK * g, string filename, int m, vector<ve
 			ostringstream nomcst;
 			nomcst.str("");
 			nomcst<<"(4_"<<j<<")";
+			cout << "(4_"<<j<<")"<< Constraints[nbcst] << endl;
 			Constraints[nbcst].setName(nomcst.str().c_str());
 			nbcst++;
 		}
@@ -163,14 +169,17 @@ pair<IloEnv,IloCplex> model_plne(Graph_AK * g, string filename, int m, vector<ve
 
 	for(int i = 0; i < n ; i++){
 		for(int j = 0; j < n; j++){
-			if( (j != depot) /*and (i != depot) */and (i != j)){
+			if( (j != depot) and (i != depot) and (i != j)){
 				IloExpr mtz(env);
-				mtz = w[i] - w[j] - g->get_demand(i) + (g->get_capacity() + g->get_demand(i))*(1 - x[i][j]) ;
-				cout << mtz << endl;    //COUT
-				Constraints.add(mtz >= 0);
+//				mtz = w[i] - w[j] - g->get_demand(i) + (g->get_capacity() + g->get_demand(i))*(1 - x[i][j]) ;
+				mtz = w[i] - w[j] + g->get_capacity() * x[i][j] - g->get_capacity() + g->get_demand(j);
+				Constraints.add(mtz <= 0);
+
+//				Constraints.add(mtz >= 0);
 				ostringstream nomcst;
 				nomcst.str("");
 				nomcst<<"(5_"<<i<<"_"<<j<<")";
+				cout << Constraints[nbcst]<<endl;
 				Constraints[nbcst].setName(nomcst.str().c_str());
 				nbcst++;
 			}
@@ -181,7 +190,7 @@ pair<IloEnv,IloCplex> model_plne(Graph_AK * g, string filename, int m, vector<ve
 
   model.add(Constraints);
 
-  IloObjective obj=IloAdd(model, IloMinimize(env, 0.0));
+  IloObjective obj=IloAdd(model, IloMinimize(env));
 
   for(int i = 0; i < n; i++){
 	  for(int j = 0; j < n ; j++){
@@ -193,7 +202,7 @@ pair<IloEnv,IloCplex> model_plne(Graph_AK * g, string filename, int m, vector<ve
 
 
   IloCplex cplex(model);
- // cplex.use(UsercutCutMinSeparation(env, *g,x));
+  cplex.use(UsercutCutMinSeparation(env, *g,x));
 
 
   cout<<"Wrote LP on file"<<endl;
