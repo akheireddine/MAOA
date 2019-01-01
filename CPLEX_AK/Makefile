@@ -59,22 +59,29 @@ CCFLAGS = $(CCOPT) -I$(CPLEXINCDIR) -I$(CONCERTINCDIR) -I$(LEMONINCDIR)
 
 
 
-all: VRP_MTZ
+all: CPLEX_RESOLUTION
 
 Graph_AK.o: ../Graph_AK.cpp ../Graph_AK.h
 	$(CCC) -c $(CCFLAGS) $(CCLNDIRS) -c ../Graph_AK.cpp -o ../Graph_AK.o
 
-CutMinSeparation.o: CutMinSeparation.cpp ../Graph_AK.h
-	$(CCC) -c $(CCFLAGS) $(CCLNDIRS) -c CutMinSeparation.cpp
+#CutMinSeparation.o: CutMinSeparation.cpp ../Graph_AK.h
+#	$(CCC) -c $(CCFLAGS) $(CCLNDIRS) -c CutMinSeparation.cpp
 
-#BC_VRP.o: BC_VRP.cpp ../Graph_AK.h
-#	$(CCC) -c $(CCFLAGS) $(CCLNDIRS) -c BC_VRP.cpp
+#BC_VRP_MTZ.o: BC_VRP_MTZ.cpp ../Graph_AK.h
+#	$(CCC) -c $(CCFLAGS) $(CCLNDIRS) -c BC_VRP_MTZ.cpp
 
-VRP_MTZ.o: VRP_MTZ.cpp
-	$(CCC) -c $(CCFLAGS) $(CCLNDIRS) VRP_MTZ.cpp
+#VRP_MTZ.o: VRP_MTZ.cpp ../Graph_AK.h
+#	$(CCC) -c $(CCFLAGS) $(CCLNDIRS) -c VRP_MTZ.cpp
 
-VRP_MTZ: VRP_MTZ.o Graph_AK.o CutMinSeparation.o 
-	$(CCC) $(CCFLAGS) $(CCLNDIRS) VRP_MTZ.o ../Graph_AK.o CutMinSeparation.o -o VRP_MTZ $(CCLNFLAGS)
+main_project.o : main_project.cpp VRP_MTZ.h VRP_CUT.h
+	$(CCC) -c $(CCFLAGS) $(CCLNDIRS)  -c main_project.cpp
+	
+CPLEX_RESOLUTION : main_project.o Graph_AK.o BC_VRP_MTZ.h VRP_MTZ.h VRP_CUT.h
+	$(CCC) $(CCFLAGS) $(CCLNDIRS) main_project.o ../Graph_AK.o -o CPLEX_RESOLUTION $(CCLNFLAGS)
+
+
+#VRP_MTZ: VRP_MTZ.o Graph_AK.o CutMinSeparation.o BC_VRP_MTZ.h
+#	$(CCC) $(CCFLAGS) $(CCLNDIRS) VRP_MTZ.o ../Graph_AK.o CutMinSeparation.o -o VRP_MTZ $(CCLNFLAGS)
 
 clean:
-	rm -f *.o VRP_MTZ
+	rm -f *.o CPLEX_RESOLUTION

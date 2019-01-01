@@ -1,3 +1,6 @@
+#ifndef __GRAPH_AK__
+#define __GRAPH_AK__
+
 #include <vector>
 #include <string>
 
@@ -7,6 +10,9 @@
 
 using namespace std;
 
+#define FLT_MAX std::numeric_limits<float>::max();
+
+
 class Graph_AK {
 private:
 
@@ -14,6 +20,7 @@ private:
     vector< int > demands_tab;
     vector< vector<float> > distance_mat;
     int n;
+    int m;
     int capacity;                                  //vérifier avec const !!! 16/12
     int id_depot;
     vector <float> metaheuristic_evaluation_tab;
@@ -26,18 +33,19 @@ private:
 
     lemon::ListGraph L_GU;
     vector<lemon::ListGraph::Node> LGU_name_node;
+    vector<vector<lemon::ListGraph::Edge> > LGU_name_link;
 
     //UNUSED
-    vector<vector<lemon::ListGraph::Edge> > LGU_name_link;
-    map<int, int> L_rtnmap;
+//    map<int, int> L_rtnmap;
 
 public:
 
     void construct_Undirected_Lemon_Graph();
 	double undirected_MinimumCut(vector< int >& W);
 	void set_x_value(vector< vector<float> > cost_x);
+	float minDistance(float dist[], bool sptSet[]);
 
-    Graph_AK(string vrp_filename);
+    Graph_AK(string vrp_filename, int upbound);
     float cost_TSP(vector<int> route);
     float two_opt(vector<int> & route);
     float euclidean_distance(int i,int j);
@@ -48,11 +56,14 @@ public:
 	float run_metaheuristic();
 	void print_solution();
 	void write_dot_G(string InstanceName,vector<vector<int> > routes);
+	bool has_sub_tour(vector<int> & W);
 
 	int get_n(){return n;};
 	int get_capacity(){return capacity;};
 	int get_depot(){ return id_depot;};
 	int get_demand(int i){ return demands_tab[i];};
-
+	int get_m(){ return m;};
 	float get_distance(int i, int j){ return distance_mat[i][j];};
 };
+
+#endif

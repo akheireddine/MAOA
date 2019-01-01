@@ -5,6 +5,7 @@
 #include <sstream>
 #include <fstream>
 #include <math.h>
+#include <limits.h>
 #include <lemon/lgf_writer.h>
 
 
@@ -22,13 +23,15 @@ void Graph_AK::print_distance_matrix() {
 	printf("\n");
 }
 
-Graph_AK::Graph_AK (string vrp_filename) {
+Graph_AK::Graph_AK (string vrp_filename, int upbound) {
 
   ifstream fic(vrp_filename.c_str());
 
   if (!(fic)){
     cerr<<"Error occurred"<<endl;
   }
+
+  m = upbound;
 
   string line;
 
@@ -270,7 +273,7 @@ void Graph_AK::construct_Undirected_Lemon_Graph(){
   for (int i = 0; i < n ; i++){
 //	if(i != id_depot){
 		LGU_name_node[i] = L_GU.addNode();
-		L_rtnmap[L_GU.id(LGU_name_node[i])] = i;
+//		L_rtnmap[L_GU.id(LGU_name_node[i])] = i;
 //	}
   }
   LGU_name_link.resize(n,vector<lemon::ListGraph::Edge>(n));
@@ -337,15 +340,112 @@ double Graph_AK::undirected_MinimumCut(vector<int >& W){
 void Graph_AK::set_x_value(vector< vector<float> > cost_x){
 	x_value = cost_x;
 
-	for (int i = 0; i < n; i++) {
-		for (int j = 0; j < n; j++) {
-			if(x_value[i][j] > 0)
-			printf("%f ", cost_x[i][j]);
-		}
-		printf("\n\n");
-	}
-	printf("\n");
+//	for (int i = 0; i < n; i++) {
+//		for (int j = 0; j < n; j++) {
+//			if(x_value[i][j] > 0)
+//			printf("%f ", cost_x[i][j]);
+//		}
+//		printf("\n\n");
+//	}
+//	printf("\n");
 }
+
+
+float Graph_AK::minDistance(float dist[], bool sptSet[])
+{
+   float min = FLT_MAX;
+   int min_index;
+
+   for (int v = 0; v < n; v++)
+     if (sptSet[v] == false && dist[v] <= min){
+         min = dist[v];
+         min_index = v;
+     }
+
+   return min_index;
+}
+
+
+bool Graph_AK::has_sub_tour(vector<int> & W)
+{
+	int src = id_depot;
+	float dist[n];     // The output array.  dist[i] will hold the shortest
+				  // distance from src to i
+
+	bool sptSet[n]; // sptSet[i] will be true if vertex i is included in shortest
+				 // path tree or shortest distance from src to i is finalized
+
+	// Initialize all distances as INFINITE and stpSet[] as false
+	for (int i = 0; i < n; i++){
+		dist[n] = FLT_MAX;
+		sptSet[i] = false;
+	}
+	// Distance of source vertex from itself is always 0
+	dist[src] = 0;
+	sptSet[src] = true;
+
+	// Find shortest path for all vertices
+	for (int count = 0; count < n-1; count++)
+	{
+		// Pick the minimum distance vertex from the set of vertices not
+		// yet processed. u is always equal to src in the first iteration.
+		int u = minDistance(dist, sptSet);
+
+		// Mark the picked vertex as processed
+		sptSet[u] = true;
+
+		// Update dist value of the adjacent vertices of the picked vertex.
+		for (int v = 0; v < n; v++)
+
+		 // Update dist[v] only if is not in sptSet, there is an edge from
+		 // u to v, and total weight of path from src to  v through u is
+		 // smaller than current value of dist[v]
+		 if (!sptSet[v] /*&& graph[u][v]*/ && dist[u] != INT_MAX && dist[u]+distance_mat[u][v] < dist[v])
+			dist[v] = dist[u] + distance_mat[u][v];
+	}
+	for(int i = 0; i < n; i++){
+		if(!sptSet[i])
+			W.push_back(i);
+	}
+	return W.size() > 0;
+}
+
+
+
+
+
+
+//bool Graph_AK::has_sub_tour(vector<int> & W){
+//
+//  int i;
+//  list<C_link *>::const_iterator it;
+//  lemon::ListDigraph::ArcMap<double> L_cost(L_GU);
+//
+//  for (i = 0;i<nb_nodes;i++){
+//	for (it=V_nodes[i].L_adjLinks.begin();it!=V_nodes[i].L_adjLinks.end();it++){
+//	  L_cost.set((*it)->LGD_name,(*it)->algo_cost);
+//	}
+//  }
+//
+// lemon::Dijkstra<lemon::ListDigraph,lemon::ListDigraph::ArcMap<double> > L_Dij(L_GD,L_cost);
+//
+// L_Dij.run(V_nodes[u].LGD_name);
+//
+// for (i=0;i<nb_nodes;i++)
+//   if (i==u) {
+//	 T[i]=-1;
+//	 dist[i]=0;
+//   }
+//   else
+//	 if (L_Dij.predNode(V_nodes[i].LGD_name)==lemon::INVALID) {
+//	   T[i]=-2;
+//	   dist[i]=-1;
+//	 }
+//	 else{
+//	   T[i]=L_rtnmap[L_GD.id(L_Dij.predNode(V_nodes[i].LGD_name))];
+//	   dist[i]=L_Dij.dist(V_nodes[i].LGD_name);
+//	 }
+//}
 
 
 
