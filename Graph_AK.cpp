@@ -365,10 +365,8 @@ float Graph_AK::minDistance(float dist[], bool sptSet[])
    return min_index;
 }
 
+void Graph_AK::Dijsktra(vector<int> & L, int src,bool atteignable){
 
-bool Graph_AK::has_sub_tour(vector<int> & W)
-{
-	int src = id_depot;
 	float dist[n];     // The output array.  dist[i] will hold the shortest
 				  // distance from src to i
 
@@ -404,9 +402,33 @@ bool Graph_AK::has_sub_tour(vector<int> & W)
 			dist[v] = dist[u] + distance_mat[u][v];
 	}
 	for(int i = 0; i < n; i++){
-		if(!sptSet[i])
-			W.push_back(i);
+		if(!sptSet[i] and !atteignable)
+			L.push_back(i);
+	    if(sptSet[i] and atteignable)
+			L.push_back(i)
+
 	}
+}
+
+bool Graph_AK::has_sub_tour(vector<vector<int> > & W)
+{
+	vector<int> circuits_list;
+	vector<int> L_tmp;
+	Dijsktra(circuits_list, id_depot,false);
+
+	bool exists_other_circuits = true;
+	int i = 0, k = 0;
+	while( i<circuits.size() ){
+		Dijsktra(L_tmp, circuits_list[i],true);
+		for(int j = 0; j< circuits.size(); j++){
+			if(L_tmp.contains(circuits[j]))
+				circuits.erease(circuits.begin() + j);
+		for(int j = 0; i < L_tmp.size(); j++){
+			W[k].push_back(L_tmp[j]);
+			k++;
+		}
+	}
+
 	return W.size() > 0;
 }
 
