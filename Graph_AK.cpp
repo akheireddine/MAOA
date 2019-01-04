@@ -398,7 +398,7 @@ void Graph_AK::Dijsktra(vector<int> & L, int src,bool atteignable){
 		 // Update dist[v] only if is not in sptSet, there is an edge from
 		 // u to v, and total weight of path from src to  v through u is
 		 // smaller than current value of dist[v]
-		 if (!sptSet[v] /*&& graph[u][v]*/ && dist[u] != INT_MAX && dist[u]+distance_mat[u][v] < dist[v])
+		 if (!sptSet[v] && x_value[u][v] != 0 && dist[u] != FLT_MAX && dist[u]+distance_mat[u][v] < dist[v])
 			dist[v] = dist[u] + distance_mat[u][v];
 	}
 	for(int i = 0; i < n; i++){
