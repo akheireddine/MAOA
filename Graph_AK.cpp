@@ -381,25 +381,26 @@ void Graph_AK::Dijsktra(vector<int> & L, int src){
 	// Distance of source vertex from itself is always 0
 	dist[src] = 0;
 	sptSet[src] = true;
-
+	int u = src;
 	// Find shortest path for all vertices
 	for (int count = 0; count < n-1; count++)
 	{
 		// Pick the minimum distance vertex from the set of vertices not
 		// yet processed. u is always equal to src in the first iteration.
-		int u = minDistance(dist, sptSet, u);
+		u = minDistance(dist, sptSet, u);
 
 		// Mark the picked vertex as processed
 		sptSet[u] = true;
 
 		// Update dist value of the adjacent vertices of the picked vertex.
-		for (int v = 0; v < n; v++)
+		for (int v = 0; v < n; v++){
 
 		 // Update dist[v] only if is not in sptSet, there is an edge from
 		 // u to v, and total weight of path from src to  v through u is
 		 // smaller than current value of dist[v]
-		 if ((!sptSet[v]) && (x_value[u][v] != 0) && (dist[u] != FLT_MAX) && (dist[u]+ 1 < dist[v]))
-			dist[v] = dist[u] + 1;
+			if ( !sptSet[v] and x_value[u][v] != 0 and (dist[u] != FLT_MAX) and (dist[u] + 1 < dist[v]) )
+				dist[v] = dist[u] + 1;
+		}
 	}
 	for(int i = 0; i < n; i++){
 		if(!sptSet[i])
@@ -415,9 +416,10 @@ bool Graph_AK::has_sub_tour(vector<vector<int> > & W)
 	vector<int> tmp_l;
 
 	Dijsktra(L, id_depot);
+
 	//No circuit
 	if ( L.size()== 0 )
-		return;
+		return false;
 
 	vector<bool> checked(n,false);
 

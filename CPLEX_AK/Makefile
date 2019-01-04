@@ -46,7 +46,7 @@ CONCERTINCDIR = $(CONCERTDIR)/include
 CPLEXINCDIR   = $(CPLEXDIR)/include
 LEMONINCDIR   = $(LEMONDIR)/include
 
-CCLNFLAGS = -lconcert -lilocplex -lcplex -lemon -lm -lpthread
+CCLNFLAGS = -lconcert -lilocplex -lcplex -lemon -lm -lpthread -ldl
 
 CCFLAGS = $(CCOPT) -I$(CPLEXINCDIR) -I$(CONCERTINCDIR) -I$(LEMONINCDIR)
 

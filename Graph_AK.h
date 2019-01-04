@@ -10,7 +10,7 @@
 
 using namespace std;
 
-#define FLT_MAX std::numeric_limits<float>::max();
+#define FLT_MAX std::numeric_limits<float>::max()
 
 
 class Graph_AK {
@@ -56,7 +56,10 @@ public:
 	float run_metaheuristic();
 	void print_solution();
 	void write_dot_G(string InstanceName,vector<vector<int> > routes);
-	bool has_sub_tour(vector<int> & W);
+	bool has_sub_tour(vector<vector<int> > & W);
+	void Dijsktra(vector<int> & L, int src);
+	float minDistance(float dist[], bool sptSet[], int u);
+
 
 	int get_n(){return n;};
 	int get_capacity(){return capacity;};

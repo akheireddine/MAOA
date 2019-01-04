@@ -27,8 +27,9 @@ bool  find_ViolatedCutCst_INTEGER(IloEnv env, Graph_AK & G,  vector<vector<IloNu
 	for(i = 0; i < W.size(); i++){
 		b = 0.0;
 		for(k = 0; k < W[i].size() ; k++){
+			int u = W[i][k];
 			for(j = 0; j < W[i].size(); j++){
-				int u = W[i][k], v = W[i][j];
+				int v = W[i][j];
 				expr += x[u][v];
 			}
 			b += G.get_demand(u);
@@ -54,10 +55,12 @@ bool  find_ViolatedCutCst_INTEGER(IloEnv env, Graph_AK & G,  vector<vector<IloNu
 
 // Usefull inequalities (here are the same as the necessary ones)
 ILOLAZYCONSTRAINTCALLBACK2(LazyCutSeparation, Graph_AK &, G, vector<vector<IloNumVar> >&,x ){
+
 	#ifdef OUTPUT
 		cout<<"********* Lazycut separation Callback *************"<<endl;
 	#endif
   int i,j;
+
 //  IloRange ViolatedCst;
   vector<IloRange> ViolatedCst;
 
