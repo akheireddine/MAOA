@@ -10,10 +10,10 @@
 
 
 
-bool  find_ViolatedCutCst_INTEGER(IloEnv env, Graph_AK & G,  vector<vector<IloNumVar> >& x,  IloRange & ViolatedCst){
+bool  find_ViolatedCutCst_INTEGER(IloEnv env, Graph_AK & G,  vector<vector<IloNumVar> >& x,  vector<IloRange> & ViolatedCst){
 
-  int i,j;
-  vector<int> W;
+  int i,j,k;
+  vector<vector<int> > W;
   bool test = false;
   // Find a minimum cut
   test = G.has_sub_tour(W);
@@ -24,17 +24,23 @@ bool  find_ViolatedCutCst_INTEGER(IloEnv env, Graph_AK & G,  vector<vector<IloNu
 	float b = 0.0;
 
 
-	for (i = 0; i < W.size(); i++){
-	  for (j = i + 1; j < W.size() ; j++){
-		int u = W[i], v = W[j];
-		expr += x[u][v];
-		b += G.get_distance(u,v);
-	  }
+	for(i = 0; i < W.size(); i++){
+		b = 0.0;
+		for(k = 0; k < W[i].size() ; k++){
+			for(j = 0; j < W[i].size(); j++){
+				int u = W[i][k], v = W[i][j];
+				expr += x[u][v];
+			}
+			b += G.get_demand(u);
+		}
+
+		b /= G.get_capacity();
+		ViolatedCst.push_back(expr >= b);
 	}
 
-	b /= G.get_capacity();
+//	b /= G.get_capacity();
 
-	ViolatedCst = IloRange(expr >= b);
+//	ViolatedCst = IloRange(expr >= b);
 
 	return true;
   }
@@ -52,7 +58,8 @@ ILOLAZYCONSTRAINTCALLBACK2(LazyCutSeparation, Graph_AK &, G, vector<vector<IloNu
 		cout<<"********* Lazycut separation Callback *************"<<endl;
 	#endif
   int i,j;
-  IloRange ViolatedCst;
+//  IloRange ViolatedCst;
+  vector<IloRange> ViolatedCst;
 
 
   // Put the linear relaxation values on the edges of graph G
@@ -77,11 +84,13 @@ ILOLAZYCONSTRAINTCALLBACK2(LazyCutSeparation, Graph_AK &, G, vector<vector<IloNu
   if (find_ViolatedCutCst_INTEGER(getEnv(),G,x, ViolatedCst)){
 	#ifdef OUTPUT
 		cout << "Adding constraint : "<<endl;
-		cout<< ViolatedCst << endl;
+//		cout<< ViolatedCst << endl;
 	#endif
-    add(ViolatedCst,IloCplex::UseCutPurge);   // UseCutForce UseCutPurge UseCutFilter
+	for(i = 0; i < ViolatedCst.size(); i++){
+		add(ViolatedCst[i],IloCplex::UseCutPurge);   // UseCutForce UseCutPurge UseCutFilter
+	}
   }
-    else {
+  else {
 	#ifdef OUTPUT
     	cout<<"No Cst found"<<endl;
 	#endif

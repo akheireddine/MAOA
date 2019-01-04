@@ -351,13 +351,13 @@ void Graph_AK::set_x_value(vector< vector<float> > cost_x){
 }
 
 
-float Graph_AK::minDistance(float dist[], bool sptSet[])
+float Graph_AK::minDistance(float dist[], bool sptSet[], int u)
 {
    float min = FLT_MAX;
    int min_index;
 
    for (int v = 0; v < n; v++)
-     if (sptSet[v] == false && dist[v] <= min){
+     if (sptSet[v] == false && x_value[u][v] != 0 && dist[v] <= min){
          min = dist[v];
          min_index = v;
      }
@@ -365,7 +365,7 @@ float Graph_AK::minDistance(float dist[], bool sptSet[])
    return min_index;
 }
 
-void Graph_AK::Dijsktra(vector<int> & L, int src,bool atteignable){
+void Graph_AK::Dijsktra(vector<int> & L, int src){
 
 	float dist[n];     // The output array.  dist[i] will hold the shortest
 				  // distance from src to i
@@ -387,7 +387,7 @@ void Graph_AK::Dijsktra(vector<int> & L, int src,bool atteignable){
 	{
 		// Pick the minimum distance vertex from the set of vertices not
 		// yet processed. u is always equal to src in the first iteration.
-		int u = minDistance(dist, sptSet);
+		int u = minDistance(dist, sptSet, u);
 
 		// Mark the picked vertex as processed
 		sptSet[u] = true;
@@ -398,35 +398,53 @@ void Graph_AK::Dijsktra(vector<int> & L, int src,bool atteignable){
 		 // Update dist[v] only if is not in sptSet, there is an edge from
 		 // u to v, and total weight of path from src to  v through u is
 		 // smaller than current value of dist[v]
-		 if (!sptSet[v] && x_value[u][v] != 0 && dist[u] != FLT_MAX && dist[u]+distance_mat[u][v] < dist[v])
-			dist[v] = dist[u] + distance_mat[u][v];
+		 if ((!sptSet[v]) && (x_value[u][v] != 0) && (dist[u] != FLT_MAX) && (dist[u]+ 1 < dist[v]))
+			dist[v] = dist[u] + 1;
 	}
 	for(int i = 0; i < n; i++){
-		if(!sptSet[i] and !atteignable)
+		if(!sptSet[i])
 			L.push_back(i);
-	    if(sptSet[i] and atteignable)
-			L.push_back(i)
-
 	}
 }
 
+
 bool Graph_AK::has_sub_tour(vector<vector<int> > & W)
 {
-	vector<int> circuits_list;
-	vector<int> L_tmp;
-	Dijsktra(circuits_list, id_depot,false);
+	int i = 0, u,v;
+	vector<int> L;
+	vector<int> tmp_l;
 
-	bool exists_other_circuits = true;
-	int i = 0, k = 0;
-	while( i<circuits.size() ){
-		Dijsktra(L_tmp, circuits_list[i],true);
-		for(int j = 0; j< circuits.size(); j++){
-			if(L_tmp.contains(circuits[j]))
-				circuits.erease(circuits.begin() + j);
-		for(int j = 0; i < L_tmp.size(); j++){
-			W[k].push_back(L_tmp[j]);
-			k++;
+	Dijsktra(L, id_depot);
+	//No circuit
+	if ( L.size()== 0 )
+		return;
+
+	vector<bool> checked(n,false);
+
+	while( i < L.size() ){
+		u = L[i];
+		if( checked[u] ){
+			i++;
+			continue;
 		}
+
+		tmp_l.push_back(u);
+		checked[u] = true;
+		v = 0;
+		while( v != L[i] and v < n){
+			if( u != v and x_value[u][v] != 0){
+				tmp_l.push_back(v);
+				u = v;
+				checked[v] = true;
+				v = 0;
+			}
+			else
+				v++;
+		}
+
+		W.push_back(tmp_l);
+		tmp_l.clear();
+		i++;
 	}
 
 	return W.size() > 0;
