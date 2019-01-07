@@ -3,7 +3,7 @@
 
 #define epsilon_cplex 0.00001
 
-#define OUTPUT
+//#define OUTPUT
 
 
 
@@ -57,11 +57,9 @@ bool  find_ViolatedCutCst_INTEGER(IloEnv env, Graph_AK & G,  vector<vector<IloNu
 		b = ceil(b/G.get_capacity());
 		ViolatedCst.push_back(expr >= b);
 	}
-	  printf("A IN\n");
 
 	return true;
   }
-  printf("A OUT\n");
 
   return false;
 
@@ -123,7 +121,6 @@ ILOLAZYCONSTRAINTCALLBACK2(LazyCutSeparation, Graph_AK &, G, vector<vector<IloNu
 
 
   G.set_x_value(cost_x);
-  cout<<"********* set x value  *************"<<endl;
   /* Separation of Cut inequalities */
 
   if (find_ViolatedCutCst_INTEGER(getEnv(),G,x, ViolatedCst)){

@@ -58,7 +58,6 @@ public:
 	void write_dot_G(string InstanceName,vector<vector<int> > routes);
 	bool has_sub_tour(vector<vector<int> > & W);
 	void Dijsktra(vector<int> & L, int src, bool atteignable);
-	float minDistance(vector<float> dist, vector<bool> sptSet);
 
 
 	int get_n(){return n;};

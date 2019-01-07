@@ -65,31 +65,67 @@ void Formulation_COUPES(Graph_AK * g, string filename, vector<vector<IloNumVar >
 	env.out() << "Solution status = " << cplex.getStatus() << endl;
 	env.out() << "Solution value  = " << cplex.getObjValue() << endl;
 
-	list< pair<int,int> > Lsol;
+//	list< pair<int,int> > Lsol;
 
+	vector<vector<float> > cost_x(n,vector<float>(n,0));
 	for(unsigned int i = 0; i < n ; i++){
 	  for (unsigned int j=0;j< n ;j++){
-	   if (i!=j ){
+	   if ( i!=j ){
 		   if (cplex.getValue(x[i][j]) == 1 ){//>1-epsilon){
-			   Lsol.push_back(make_pair(i,j));
+			   cost_x[i][j] = 1;
 		   }
 	   }
 	  }
 	}
 
+	g->set_x_value(cost_x);
+
+	vector< vector<int> > Lsol;
+	vector<int> L(n);
+
+	for(int i = 0; i < n; i++)
+		L[i] = i;
+
+	while(L.size() > 0){
+		vector<int> new_L;
+		vector<int> tmp_l;
+
+		g->Dijsktra(tmp_l,L[0],true);
+
+		Lsol.push_back(tmp_l);
+
+		for(int j = 0; j < L.size(); j++){
+			int k = 0;
+			while (k < tmp_l.size() and tmp_l[k] != L[j]){
+				k++;
+			}
+			if (k == tmp_l.size())
+				new_L.push_back(L[j]);
+		}
+		L = new_L;
+	}
 
 	env.end();
+
+	ofstream ficsol((filename+".vrp").c_str());
+	double best_length=0;
+	for(int i = 0; i < Lsol.size(); i++){
+		for(int j = 0; j < Lsol[i].size() ; j++){
+		 ficsol<<Lsol[i][j]<<" ";
+		}
+		ficsol<<endl;
+	}
 
 
 	list<pair<int,int> >::const_iterator itp;
 
 
-	ofstream ficsol((filename+".ak_cplex").c_str());
-	double best_length=0;
-	for(itp = Lsol.begin(); itp!=Lsol.end();itp++) {
-	 best_length += g->get_distance(itp->first,itp->second);
-	 ficsol<<itp->first<<" "<<itp->second<<endl;
-	}
+//	ofstream ficsol((filename+".vrp").c_str());
+//	double best_length=0;
+//	for(itp = Lsol.begin(); itp!=Lsol.end();itp++) {
+//	 best_length += g->get_distance(itp->first,itp->second);
+//	 ficsol<<itp->first<<" "<<itp->second<<endl;
+//	}
 
 	ficsol.close();
 

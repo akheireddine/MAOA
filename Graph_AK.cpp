@@ -348,42 +348,22 @@ void Graph_AK::set_x_value(vector< vector<float> > cost_x){
 	}
 
 
-	for (int i = 0; i < n; i++) {
-		for (int j = 0; j < n; j++) {
-			printf("%f ", x_value[i][j]);
-		}
-		printf("\n\n");
-	}
-	printf("\n");
+//	for (int i = 0; i < n; i++) {
+//		for (int j = 0; j < n; j++) {
+//			printf("%f ", x_value[i][j]);
+//		}
+//		printf("\n\n");
+//	}
+//	printf("\n");
 }
 
 
-float Graph_AK::minDistance(vector<float> dist, vector<bool> sptSet)
-{
-   float min = FLT_MAX;
-   int min_index = -1;
-   for(int u = 0; u < n; u++){
-	   if(sptSet[u])
-		   continue;
-	   for (int v = 0; v < n; v++)
-		 if (u != v)
-			 if (sptSet[v] == false and (x_value[u][v] != 0 or x_value[v][u] != 0) and dist[v] <= min){
-				 min = dist[v];
-				 min_index = v;
-			 }
-   }
-
-   return min_index;
-}
 
 
 void Graph_AK::Dijsktra(vector<int> & L, int src, bool atteignable){
 
-
 	vector <bool > sptSet(n, false);
-
 	vector<int> E;
-	cout<<"********* dijk depot *************"<<endl;
 
 	E.push_back(src);
 	while (!E.empty()){
@@ -399,9 +379,7 @@ void Graph_AK::Dijsktra(vector<int> & L, int src, bool atteignable){
 
 	}
 
-
 	for(int i = 0; i < n; i++){
-
 		if(!sptSet[i] and !atteignable)
 			L.push_back(i);
 
@@ -461,163 +439,122 @@ bool Graph_AK::has_sub_tour(vector<vector<int> > & W)
 
 
 
-//	vector<bool> checked(n,false);
 
-//	while( i < L.size() ){
-//		u = L[i];
-//		if( checked[u] ){
-//			i++;
-//			continue;
-//		}
+//void convert_solution_into_routes(string filename){
+//	  ostringstream FileName;
+//	  FileName.str("");
+//	  FileName <<InstanceName.c_str() << ".vrp";
+//	  ofstream fic_write(FileName.str().c_str());
 //
-//		tmp_l.push_back(u);
-//		checked[u] = true;
-//		v = 0;
-//		while( v < n){
-//			if (u != v){
-//				printf(" u %d v %d \n",u,v);
-//				if( !checked[v] and (x_value[u][v] != 0 or x_value[v][u] != 0)){
-//					tmp_l.push_back(v);
-//					u = v;
-//					checked[v] = true;
-//					v = 0;
-//				}
-//			}
-//			else
-//				v++;
-//		}
+//	  FileName.str("");
+//	  FileName <<InstanceName.c_str() << ".links";
+//	  ifstream fic_read(filename.c_str());
 //
-//		W.push_back(tmp_l);
-//		tmp_l.clear();
-//		i++;
-//	}
+//	  int i = 0,index = 1;
+//	  int u,v;
+//	  string line;
 //
+//	  vector<int> index_route(n,0);
+//	  vector<vector<int> > routes;
 //
-//	return W.size() > 0;
-//}
-
-
-
-
-
-
-//bool Graph_AK::has_sub_tour(vector<int> & W){
+//	  while(!fic_read.eof()){
+//		  getline(fic_read,line);
+//		  sscanf(line.c_str(), "%d %d", &u, &v);
 //
-//  int i;
-//  list<C_link *>::const_iterator it;
-//  lemon::ListDigraph::ArcMap<double> L_cost(L_GU);
+//		  if()
+//		  if( u != id_depot and v != id_depot ){
+//			  if( (index_route[u] != 0 || index_route[v] != 0)){
 //
-//  for (i = 0;i<nb_nodes;i++){
-//	for (it=V_nodes[i].L_adjLinks.begin();it!=V_nodes[i].L_adjLinks.end();it++){
-//	  L_cost.set((*it)->LGD_name,(*it)->algo_cost);
-//	}
-//  }
+//			  }
+//		  }
 //
-// lemon::Dijkstra<lemon::ListDigraph,lemon::ListDigraph::ArcMap<double> > L_Dij(L_GD,L_cost);
-//
-// L_Dij.run(V_nodes[u].LGD_name);
-//
-// for (i=0;i<nb_nodes;i++)
-//   if (i==u) {
-//	 T[i]=-1;
-//	 dist[i]=0;
-//   }
-//   else
-//	 if (L_Dij.predNode(V_nodes[i].LGD_name)==lemon::INVALID) {
-//	   T[i]=-2;
-//	   dist[i]=-1;
-//	 }
-//	 else{
-//	   T[i]=L_rtnmap[L_GD.id(L_Dij.predNode(V_nodes[i].LGD_name))];
-//	   dist[i]=L_Dij.dist(V_nodes[i].LGD_name);
-//	 }
-//}
-
-
-
-
-
-
-
-
-
-
-
-//void Graph_AK::write_dot_G(string InstanceName,vector<vector<int> > routes){
-//  ostringstream FileName;
-//  FileName.str("");
-//  FileName <<InstanceName.c_str() << "_G.dot";
-//
-//  ofstream fic(FileName.str().c_str());
-//  vector <string> colors;
-//    colors.push_back("darkorchid");
-//    colors.push_back("darksalmon");
-//    colors.push_back("gold");
-//    colors.push_back("plum");
-//    colors.push_back("tan");
-//    colors.push_back("darkorange");
-//    colors.push_back("rosybrown");
-//    colors.push_back("darkolivegreen3");
-//    colors.push_back("lightblue3");
-//    colors.push_back("firebrick");
-//    colors.push_back("lightslategray");
-//    colors.push_back("lightskyblue1");
-//    colors.push_back("gray36");
-//    colors.push_back("green");
-//    colors.push_back("blue");
-//    colors.push_back("red");
-//    colors.push_back("cyan");
-//    colors.push_back("yellow");
-//    colors.push_back("magenta");
-//    colors.push_back("violetred");
-//
-//
-//
-//  if(routes.size() > colors.size()){
-//    cout<<"We only have "<<colors.size()<<" colors and this solutions needs "<<routes.size()<<" colors... some nodes will have wrong colors!"<<endl;
-//  }
-//
-//  fic<<"graph G {"<<endl;
-//  //depot node
-//  fic<<"  "<<id_depot<<"[shape = box, label = \"depot\", style = filled ];"<<endl;
-//  vector< vector<int> > routes_without_empty_route;
-//  for(unsigned int i = 0; i<routes.size(); i++){
-//	  if(routes[i].size() > 0){
-//		  routes_without_empty_route.push_back(routes[i]);
 //	  }
-//  }
-//  routes = routes_without_empty_route;
-//  int id_color = 0;
-//  for(unsigned int i=0 ; i<routes_without_empty_route.size() ; i++){
-//    id_color += 1;
-//    int node_sup, node_inf = id_depot;
 //
-//    for(unsigned int j = 0; j < routes_without_empty_route[i].size(); j++){
-//      int node = routes_without_empty_route[i][j];
-//      string label = "\""+to_string(node)+" ("+(int(demands_tab[node])) + ")\"";
-//      fic<<"  "<<node<<"[shape = ellipse, label = "<<label<<", style = filled , fillcolor = "<<colors[id_color]<<" ];"<<endl;
-//      node_sup = node;
-////      string len = "\""+to_string(distance_mat[node_inf][node_sup])+"\"";
-//	  fic<<"  \""<<node_inf<<"\"--\""<<node_sup<<"\"[color = "<<colors[id_color]<<"];"<<endl;
-//	  node_inf = node;
-//    }
-////    string len = "\""+to_string(distance_mat[node_inf][id_depot])+"\"";
 //
-//    fic<<"  \""<<node_inf<<"\"--\""<<id_depot<<"\"[color = "<<colors[id_color]<<"];"<<endl;
-//
-//  }
-//
-//  fic<<"}"<<endl;
-//
-//  fic.close();
-//
-//  ostringstream commande;
-//  commande.str("");
-//  commande<<GRAPHVIZ<<"dot -Tpdf -o "<<InstanceName.c_str() << "_G.pdf "<< FileName.str().c_str()<<endl;
-//  cout<<commande.str().c_str();
-//  if(system(commande.str().c_str())){cout<<"PDF generated successfully"<<endl;}
-//  return;
+
 //}
+
+
+
+
+
+
+
+void Graph_AK::write_dot_G(string InstanceName,vector<vector<int> > routes){
+  ostringstream FileName;
+  FileName.str("");
+  FileName <<InstanceName.c_str() << "_G.dot";
+
+  ofstream fic(FileName.str().c_str());
+  vector <string> colors;
+    colors.push_back("darkorchid");
+    colors.push_back("darksalmon");
+    colors.push_back("gold");
+    colors.push_back("plum");
+    colors.push_back("tan");
+    colors.push_back("darkorange");
+    colors.push_back("rosybrown");
+    colors.push_back("darkolivegreen3");
+    colors.push_back("lightblue3");
+    colors.push_back("firebrick");
+    colors.push_back("lightslategray");
+    colors.push_back("lightskyblue1");
+    colors.push_back("gray36");
+    colors.push_back("green");
+    colors.push_back("blue");
+    colors.push_back("red");
+    colors.push_back("cyan");
+    colors.push_back("yellow");
+    colors.push_back("magenta");
+    colors.push_back("violetred");
+
+
+
+  if(routes.size() > colors.size()){
+    cout<<"We only have "<<colors.size()<<" colors and this solutions needs "<<routes.size()<<" colors... some nodes will have wrong colors!"<<endl;
+  }
+
+  fic<<"graph G {"<<endl;
+  //depot node
+  fic<<"  "<<id_depot<<"[shape = box, label = \"depot\", style = filled ];"<<endl;
+  vector< vector<int> > routes_without_empty_route;
+  for(unsigned int i = 0; i<routes.size(); i++){
+	  if(routes[i].size() > 0){
+		  routes_without_empty_route.push_back(routes[i]);
+	  }
+  }
+  routes = routes_without_empty_route;
+  int id_color = 0;
+  for(unsigned int i=0 ; i<routes_without_empty_route.size() ; i++){
+    id_color += 1;
+    int node_sup, node_inf = id_depot;
+
+    for(unsigned int j = 0; j < routes_without_empty_route[i].size(); j++){
+      int node = routes_without_empty_route[i][j];
+      string label = "\""+to_string(node)+" ("+(int(demands_tab[node])) + ")\"";
+      fic<<"  "<<node<<"[shape = ellipse, label = "<<label<<", style = filled , fillcolor = "<<colors[id_color]<<" ];"<<endl;
+      node_sup = node;
+//      string len = "\""+to_string(distance_mat[node_inf][node_sup])+"\"";
+	  fic<<"  \""<<node_inf<<"\"--\""<<node_sup<<"\"[color = "<<colors[id_color]<<"];"<<endl;
+	  node_inf = node;
+    }
+//    string len = "\""+to_string(distance_mat[node_inf][id_depot])+"\"";
+
+    fic<<"  \""<<node_inf<<"\"--\""<<id_depot<<"\"[color = "<<colors[id_color]<<"];"<<endl;
+
+  }
+
+  fic<<"}"<<endl;
+
+  fic.close();
+
+  ostringstream commande;
+  commande.str("");
+  commande<<GRAPHVIZ<<"dot -Tpdf -o "<<InstanceName.c_str() << "_G.pdf "<< FileName.str().c_str()<<endl;
+  cout<<commande.str().c_str();
+  if(system(commande.str().c_str())){cout<<"PDF generated successfully"<<endl;}
+  return;
+}
 
 
 //// Find shortest path for all vertices
