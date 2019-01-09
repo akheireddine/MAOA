@@ -78,6 +78,7 @@ Graph_AK::Graph_AK (string vrp_filename, int upbound) {
 
   initialize_distance_matrix();
   construct_Undirected_Lemon_Graph();
+
 //  print_distance_matrix();
 
 
@@ -338,12 +339,18 @@ double Graph_AK::undirected_MinimumCut(vector<int >& W){
 
 
 void Graph_AK::set_x_value(vector< vector<float> > cost_x){
-	x_value = cost_x;
+	x_value.resize(cost_x.size());
+	for (int i = 0; i < cost_x.size(); i++){
+		x_value[i].resize(cost_x[i].size(), 0.0);
+		for (int j = 0; j < cost_x[i].size(); j++){
+			x_value[i][j] = cost_x[i][j];
+		}
+	}
+
 
 //	for (int i = 0; i < n; i++) {
 //		for (int j = 0; j < n; j++) {
-//			if(x_value[i][j] > 0)
-//			printf("%f ", cost_x[i][j]);
+//			printf("%f ", x_value[i][j]);
 //		}
 //		printf("\n\n");
 //	}
@@ -351,102 +358,77 @@ void Graph_AK::set_x_value(vector< vector<float> > cost_x){
 }
 
 
-float Graph_AK::minDistance(float dist[], bool sptSet[], int u)
-{
-   float min = FLT_MAX;
-   int min_index;
 
-   for (int v = 0; v < n; v++)
-     if (sptSet[v] == false && x_value[u][v] != 0 && dist[v] <= min){
-         min = dist[v];
-         min_index = v;
-     }
 
-   return min_index;
-}
+void Graph_AK::Dijsktra(vector<int> & L, int src, bool atteignable){
 
-void Graph_AK::Dijsktra(vector<int> & L, int src){
+	vector <bool > sptSet(n, false);
+	vector<int> E;
 
-	float dist[n];     // The output array.  dist[i] will hold the shortest
-				  // distance from src to i
-
-	bool sptSet[n]; // sptSet[i] will be true if vertex i is included in shortest
-				 // path tree or shortest distance from src to i is finalized
-
-	// Initialize all distances as INFINITE and stpSet[] as false
-	for (int i = 0; i < n; i++){
-		dist[n] = FLT_MAX;
-		sptSet[i] = false;
-	}
-	// Distance of source vertex from itself is always 0
-	dist[src] = 0;
-	sptSet[src] = true;
-	int u = src;
-	// Find shortest path for all vertices
-	for (int count = 0; count < n-1; count++)
-	{
-		// Pick the minimum distance vertex from the set of vertices not
-		// yet processed. u is always equal to src in the first iteration.
-		u = minDistance(dist, sptSet, u);
-
-		// Mark the picked vertex as processed
+	E.push_back(src);
+	while (!E.empty()){
+		int u = E.back();
+		E.pop_back();
 		sptSet[u] = true;
-
-		// Update dist value of the adjacent vertices of the picked vertex.
 		for (int v = 0; v < n; v++){
-
-		 // Update dist[v] only if is not in sptSet, there is an edge from
-		 // u to v, and total weight of path from src to  v through u is
-		 // smaller than current value of dist[v]
-			if ( !sptSet[v] and x_value[u][v] != 0 and (dist[u] != FLT_MAX) and (dist[u] + 1 < dist[v]) )
-				dist[v] = dist[u] + 1;
+			if (v != u)
+				if ( !sptSet[v] and (x_value[u][v] != 0 or x_value[v][u] != 0)){
+					E.push_back(v);
+				}
 		}
+
 	}
+
 	for(int i = 0; i < n; i++){
-		if(!sptSet[i])
+		if(!sptSet[i] and !atteignable)
+			L.push_back(i);
+
+		if (sptSet[i] and atteignable)
 			L.push_back(i);
 	}
+
 }
 
 
 bool Graph_AK::has_sub_tour(vector<vector<int> > & W)
 {
+
 	int i = 0, u,v;
 	vector<int> L;
-	vector<int> tmp_l;
 
-	Dijsktra(L, id_depot);
+	Dijsktra(L, id_depot, false);
 
+	// debug
+	printf("\n inatteignable from depot \n");
+	for (int j = 0; j < L.size(); j++)
+		printf("%d ", L[j]);
+	printf("\n");
 	//No circuit
-	if ( L.size()== 0 )
+	if ( L.size() == 0 )
 		return false;
 
-	vector<bool> checked(n,false);
+	while(L.size() > 0){
+		vector<int> new_L;
+		vector<int> tmp_l;
 
-	while( i < L.size() ){
-		u = L[i];
-		if( checked[u] ){
-			i++;
-			continue;
-		}
+		Dijsktra(tmp_l,L[0],true);
+		printf("atteignable from %d\n", L[0]);
 
-		tmp_l.push_back(u);
-		checked[u] = true;
-		v = 0;
-		while( v != L[i] and v < n){
-			if( u != v and x_value[u][v] != 0){
-				tmp_l.push_back(v);
-				u = v;
-				checked[v] = true;
-				v = 0;
-			}
-			else
-				v++;
-		}
+		for (int j = 0; j < tmp_l.size(); j++)
+			printf("%d ", tmp_l[j]);
+		printf("\n");
 
 		W.push_back(tmp_l);
-		tmp_l.clear();
-		i++;
+
+		for(int j = 0; j < L.size(); j++){
+			int k = 0;
+			while (k < tmp_l.size() and tmp_l[k] != L[j]){
+				k++;
+			}
+			if (k == tmp_l.size())
+				new_L.push_back(L[j]);
+		}
+		L = new_L;
 	}
 
 	return W.size() > 0;
@@ -454,52 +436,88 @@ bool Graph_AK::has_sub_tour(vector<vector<int> > & W)
 
 
 
-bool Graph_AK::is_feasible_tour(vector<vector<int> > & W){
+bool Graph_AK::is_feasible_tour(vector<vector<int> > & V){
 
-	int i = 0, u,v;
-	vector<int> L;
-	vector<int> tmp_l;
+	int i = 0;
+	float sum;
+	vector<int> L, without_depot_tour;
+	Dijsktra(L, id_depot, true);
 
-	Dijsktra(L, id_depot);
+	if ( L.size() == 0 or (L.size() == 1 and L[0] == id_depot) )
+		return false;
+
+
+	while(L.size() > 0){
+		vector<int> new_L;
+		vector<int> tmp_l;
+
+		Dijsktra(tmp_l,L[0],true);
+		sum = 0;
+		without_depot_tour.clear();
+		printf("__________________ TOUR _____________________\n");
+		for( i = 0; i < tmp_l.size(); i++){
+			if(tmp_l[i] != id_depot){
+				without_depot_tour.push_back(tmp_l[i]);
+				printf(" %d ",tmp_l[i]);
+				sum += demands_tab[tmp_l[i]];
+			}
+		}
+
+		if( sum > capacity){
+			printf("\nsolution non realisable : depassement de la capacité\n");
+			V.push_back(without_depot_tour);
+		}
+
+		for(int j = 0; j < L.size(); j++){
+			int k = 0;
+			while (k < tmp_l.size() and tmp_l[k] != L[j]){
+				k++;
+			}
+			if (k == tmp_l.size())
+				new_L.push_back(L[j]);
+		}
+		L = new_L;
+	}
+
+	return V.size() > 0;
 }
 
 
 
-//bool Graph_AK::has_sub_tour(vector<int> & W){
+
+//void convert_solution_into_routes(string filename){
+//	  ostringstream FileName;
+//	  FileName.str("");
+//	  FileName <<InstanceName.c_str() << ".vrp";
+//	  ofstream fic_write(FileName.str().c_str());
 //
-//  int i;
-//  list<C_link *>::const_iterator it;
-//  lemon::ListDigraph::ArcMap<double> L_cost(L_GU);
+//	  FileName.str("");
+//	  FileName <<InstanceName.c_str() << ".links";
+//	  ifstream fic_read(filename.c_str());
 //
-//  for (i = 0;i<nb_nodes;i++){
-//	for (it=V_nodes[i].L_adjLinks.begin();it!=V_nodes[i].L_adjLinks.end();it++){
-//	  L_cost.set((*it)->LGD_name,(*it)->algo_cost);
-//	}
-//  }
+//	  int i = 0,index = 1;
+//	  int u,v;
+//	  string line;
 //
-// lemon::Dijkstra<lemon::ListDigraph,lemon::ListDigraph::ArcMap<double> > L_Dij(L_GD,L_cost);
+//	  vector<int> index_route(n,0);
+//	  vector<vector<int> > routes;
 //
-// L_Dij.run(V_nodes[u].LGD_name);
+//	  while(!fic_read.eof()){
+//		  getline(fic_read,line);
+//		  sscanf(line.c_str(), "%d %d", &u, &v);
 //
-// for (i=0;i<nb_nodes;i++)
-//   if (i==u) {
-//	 T[i]=-1;
-//	 dist[i]=0;
-//   }
-//   else
-//	 if (L_Dij.predNode(V_nodes[i].LGD_name)==lemon::INVALID) {
-//	   T[i]=-2;
-//	   dist[i]=-1;
-//	 }
-//	 else{
-//	   T[i]=L_rtnmap[L_GD.id(L_Dij.predNode(V_nodes[i].LGD_name))];
-//	   dist[i]=L_Dij.dist(V_nodes[i].LGD_name);
-//	 }
+//		  if()
+//		  if( u != id_depot and v != id_depot ){
+//			  if( (index_route[u] != 0 || index_route[v] != 0)){
+//
+//			  }
+//		  }
+//
+//	  }
+//
+//
+
 //}
-
-
-
-
 
 
 
@@ -582,3 +600,5 @@ bool Graph_AK::is_feasible_tour(vector<vector<int> > & W){
 //  if(system(commande.str().c_str())){cout<<"PDF generated successfully"<<endl;}
 //  return;
 //}
+
+

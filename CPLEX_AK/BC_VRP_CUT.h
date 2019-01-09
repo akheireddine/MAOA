@@ -13,35 +13,42 @@
 bool  find_ViolatedCutCst_INTEGER(IloEnv env, Graph_AK & G,  vector<vector<IloNumVar> >& x,  vector<IloRange> & ViolatedCst){
 
   int i,j,k;
-  vector<vector<int> > W, V;
+  vector<vector<int> > W;
   bool test = false;
   // Find a minimum cut
-  test = G.has_sub_tour(W);
-  test &= G.is_feasible_tour(V);
-  if (test) {
-	// Found a violated inequality
-	IloExpr expr(env);
-	float b = 0.0;
 
+  test = G.has_sub_tour(W);
+  test = test or G.is_feasible_tour(W);
+
+
+  if (test) {
+
+	// Found a violated inequality
 
 	for(i = 0; i < W.size(); i++){
-		b = 0.0;
+
+		IloExpr expr(env);
+		float b = 0.0;
+		vector<int> not_in_W;
+		for(j = 0; j < G.get_n(); j++){
+			int z = 0;
+			while( z < W[i].size() and j != W[i][z])
+				z++;
+			if(z == W[i].size())
+				not_in_W.push_back(j);
+		}
+
 		for(k = 0; k < W[i].size() ; k++){
 			int u = W[i][k];
-			for(j = 0; j < W[i].size(); j++){
-				int v = W[i][j];
+			for(j = 0; j < not_in_W.size(); j++){
+				int v = not_in_W[j];
 				expr += x[u][v];
 			}
 			b += G.get_demand(u);
 		}
-
-		b /= G.get_capacity();
+		b = ceil(b/G.get_capacity());
 		ViolatedCst.push_back(expr >= b);
 	}
-
-//	b /= G.get_capacity();
-
-//	ViolatedCst = IloRange(expr >= b);
 
 	return true;
   }
@@ -67,19 +74,43 @@ ILOLAZYCONSTRAINTCALLBACK2(LazyCutSeparation, Graph_AK &, G, vector<vector<IloNu
 
   // Put the linear relaxation values on the edges of graph G
 
-  vector< vector<float> > cost_x(x.size(),vector<float>(x.size(),0.0));
+//  for (int i = 0; i < G.get_n(); i++) {
+//  		for (int j = 0; j < G.get_n(); j++) {
+//  			if (i != j)
+//  				printf("%f ", getValue(x[i][j]));
+//  			else
+//  				printf("0.000000 ");
+//  		}
+//  		printf("\n\n");
+//  	}
+//  	printf("\n");
+
+  vector< vector<float> > cost_x(G.get_n(),vector<float>(G.get_n(),0.0));
 
   for (i = 0; i < G.get_n()  ; i++){
     for (j = 0 ; j < G.get_n(); j++){
-    	if( i != j){
+    	if( i != j and i < j){
     		cost_x[i][j] = getValue(x[i][j]);
-    		if(cost_x[i][j] < epsilon_cplex)
+//    		cost_x[j][i] = getValue(x[j][i]);
+    		if(cost_x[i][j] < epsilon_cplex and getValue(x[j][i]) < epsilon_cplex /* and cost_x[j][i] < epsilon_cplex*/)
     			cost_x[i][j] = 0 ;
-    		if(cost_x[i][j] < 1 - epsilon_cplex)
+    		else
     			cost_x[i][j] = 1;
     	}
     }
   }
+
+//  for (int i = 0; i < G.get_n(); i++) {
+//    		for (int j = 0; j < G.get_n(); j++) {
+//    			if (i != j)
+//    				printf("%f ", cost_x[i][j]);
+//    			else
+//    				printf("0.00y000 ");
+//    		}
+//    		printf("\n\n");
+//    	}
+//    	printf("\n");
+
 
   G.set_x_value(cost_x);
   /* Separation of Cut inequalities */
@@ -87,7 +118,8 @@ ILOLAZYCONSTRAINTCALLBACK2(LazyCutSeparation, Graph_AK &, G, vector<vector<IloNu
   if (find_ViolatedCutCst_INTEGER(getEnv(),G,x, ViolatedCst)){
 	#ifdef OUTPUT
 		cout << "Adding constraint : "<<endl;
-//		cout<< ViolatedCst << endl;
+		for(i = 0; i < ViolatedCst.size(); i++)
+			cout<< ViolatedCst[i] << endl;
 	#endif
 	for(i = 0; i < ViolatedCst.size(); i++){
 		add(ViolatedCst[i],IloCplex::UseCutPurge);   // UseCutForce UseCutPurge UseCutFilter

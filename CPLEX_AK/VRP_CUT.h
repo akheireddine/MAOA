@@ -54,8 +54,8 @@ void Formulation_COUPES(Graph_AK * g, string filename, vector<vector<IloNumVar >
 	cplex.exportModel("sortie.lp");
 
 	if ( !cplex.solve() ) {
-	 env.error() << "Failed to optimize LP" << endl;
-	 exit(1);
+		 env.error() << "Failed to optimize LP" << endl;
+		 exit(1);
 	}
 
 
@@ -94,5 +94,44 @@ void Formulation_COUPES(Graph_AK * g, string filename, vector<vector<IloNumVar >
 	ficsol.close();
 
 	cout<<"Tour found of value : "<<best_length<<endl;
+
+
+
+
+
+	/***
+	 * TODO SAUVEGARDE DES TOURNEES SOUS FORMAT FOUILHOUX
+	 */
+
+
+//	vector<vector<int> > Lsol;
+//	int i, j, u = id_depot;
+//	bool found;
+//
+//	for(i = 0; i < n; i++)
+//		if(i != id_depot)
+//			L[i] = i;
+//	i = 0;
+//	while(L.size() > 0){
+//		found = false;
+//		j = 0;
+//		while(j < L.size() and !found){
+//			v = L[j];
+//			if( getValue(x[u][v]) > 0 or getValue(x[v][u]) > 0 )
+//				found = true;
+//			else
+//				j++;
+//		}
+//		if( v == u )
+//			i++;
+//		else {
+//			Lsol[i].push_back(v);
+//			u = v;
+//		}
+//		L.erase(L.begin() + j);
+//	}
+
+
+
 
 }

@@ -57,8 +57,8 @@ public:
 	void print_solution();
 	void write_dot_G(string InstanceName,vector<vector<int> > routes);
 	bool has_sub_tour(vector<vector<int> > & W);
-	void Dijsktra(vector<int> & L, int src);
-	float minDistance(float dist[], bool sptSet[], int u);
+	void Dijsktra(vector<int> & L, int src, bool atteignable);
+	bool is_feasible_tour(vector<vector<int> > & V);
 
 
 	int get_n(){return n;};
@@ -67,6 +67,7 @@ public:
 	int get_demand(int i){ return demands_tab[i];};
 	int get_m(){ return m;};
 	float get_distance(int i, int j){ return distance_mat[i][j];};
+	float get_x_value(int i,int j){ return x_value[i][j]; };
 };
 
 #endif
