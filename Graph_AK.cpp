@@ -454,6 +454,14 @@ bool Graph_AK::has_sub_tour(vector<vector<int> > & W)
 
 
 
+bool Graph_AK::is_feasible_tour(vector<vector<int> > & W){
+
+	int i = 0, u,v;
+	vector<int> L;
+	vector<int> tmp_l;
+
+	Dijsktra(L, id_depot);
+}
 
 
 

@@ -13,11 +13,11 @@
 bool  find_ViolatedCutCst_INTEGER(IloEnv env, Graph_AK & G,  vector<vector<IloNumVar> >& x,  vector<IloRange> & ViolatedCst){
 
   int i,j,k;
-  vector<vector<int> > W;
+  vector<vector<int> > W, V;
   bool test = false;
   // Find a minimum cut
   test = G.has_sub_tour(W);
-
+  test &= G.is_feasible_tour(V);
   if (test) {
 	// Found a violated inequality
 	IloExpr expr(env);
