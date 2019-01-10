@@ -67,43 +67,6 @@ void Formulation_COUPES(Graph_AK * g, string filename, vector<vector<IloNumVar >
 	env.out() << "Solution value  = " << cplex.getObjValue() << endl;
 
 
-//	list< pair<int,int> > Lsol;
-//
-//	for(unsigned int i = 0; i < n ; i++){
-//	  for (unsigned int j=0;j< n ;j++){
-//	   if (i!=j ){
-//		   if (cplex.getValue(x[i][j]) == 1){ //>1-epsilon){
-//			   Lsol.push_back(make_pair(i,j));
-//		   }
-//	   }
-//	  }
-//	}
-//
-//
-//	env.end();
-//
-//
-//	list<pair<int,int> >::const_iterator itp;
-//
-//
-//	ofstream ficsol((filename+".ak_cplex").c_str());
-//	double best_length=0;
-//	for(itp = Lsol.begin(); itp!=Lsol.end();itp++) {
-//	 best_length += g->get_distance(itp->first,itp->second);
-//	 ficsol<<itp->first<<" "<<itp->second<<endl;
-//	}
-//
-//	ficsol.close();
-//
-//	cout<<"Tour found of value : "<<best_length<<endl;
-
-
-
-
-
-	/***
-	 * TODO SAUVEGARDE DES TOURNEES SOUS FORMAT FOUILHOUX
-	 */
 
 	int i, u, v;
 	vector<vector<int> > Tournees;
@@ -117,11 +80,6 @@ void Formulation_COUPES(Graph_AK * g, string filename, vector<vector<IloNumVar >
 
 		vector<int> tmp_l;
 		bool still_exists = true;
-
-//		L.pop_back();
-
-//		tmp_l.push_back(u);
-//		int starting_point = id_depot;
 
 		u = id_depot;
 

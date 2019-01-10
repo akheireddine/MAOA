@@ -25,9 +25,9 @@ int main (int argc, char**argv){
     vector<vector<IloNumVar > > x;
 
 
-//    MTZ_Formulation(g, name, x,false);
+    MTZ_Formulation(g, name, x,true,true);
 
-    Formulation_COUPES(g, name, x, true,false);
+//    Formulation_COUPES(g, name, x, true,false);
 
     return 0;
 }

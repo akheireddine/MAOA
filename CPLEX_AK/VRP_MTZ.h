@@ -2,6 +2,7 @@
 #include "../Graph_AK.h"
 #include <ilcplex/ilocplex.h>
 #include "BC_VRP_MTZ.h"
+#include "BC_VRP_CUT.h"
 
 using namespace std;
 
@@ -146,14 +147,14 @@ void create_var_W(Graph_AK *g, vector<IloNumVar> &w, IloEnv env){
 	}
 }
 
-void MTZ_Formulation(Graph_AK * g, string filename, vector<vector<IloNumVar > > & x, bool with_usercut){
+void MTZ_Formulation(Graph_AK * g, string filename, vector<vector<IloNumVar > > & x,bool with_lazycut, bool with_usercut){
 
 
     IloEnv   env;
     IloModel model(env);
     int n = g->get_n();
     int nb_var = n*(n - 1);
-
+    int id_depot = g->get_depot();
     x.resize(nb_var,vector< IloNumVar >(nb_var));
 
     /////////////////////////////////
@@ -197,9 +198,13 @@ void MTZ_Formulation(Graph_AK * g, string filename, vector<vector<IloNumVar > > 
 
 	IloCplex cplex(model);
 
+	if(with_lazycut){
+		cplex.use(LazyCutSeparation(env, *g, x));
+	}
 	if(with_usercut){
 		cplex.use(UsercutCutMinSeparation(env, *g,x));
 	}
+
 
 	cout<<"Wrote LP on file"<<endl;
 	cplex.exportModel("sortie.lp");
@@ -216,35 +221,54 @@ void MTZ_Formulation(Graph_AK * g, string filename, vector<vector<IloNumVar > > 
 	env.out() << "Solution status = " << cplex.getStatus() << endl;
 	env.out() << "Solution value  = " << cplex.getObjValue() << endl;
 
-	list< pair<int,int> > Lsol;
+	int i, u, v;
+	vector<vector<int> > Tournees;
+	vector<int> L;
 
-	for(unsigned int i = 0; i < n ; i++){
-	  for (unsigned int j=0;j< n ;j++){
-	   if (i!=j ){
-		   if (cplex.getValue(x[i][j]) == 1 ){//>1-epsilon){
-			   Lsol.push_back(make_pair(i,j));
-		   }
-	   }
-	  }
+	for(i = 0; i < n; i++)
+		if(i != id_depot)
+			L.push_back(i);
+
+	while(L.size() > 0){
+
+		vector<int> tmp_l;
+		bool still_exists = true;
+
+		u = id_depot;
+
+
+		while( still_exists ){
+			still_exists = false;
+
+			for(int j = 0; j < L.size(); j++){
+				v = L[j];
+				if(v != u and (cplex.getValue(x[u][v]) > 0) or (cplex.getValue(x[v][u]) > 0)){
+
+					still_exists = true;
+					tmp_l.push_back(v);
+					u = v;
+					L.erase(L.begin() + j);
+
+					break;
+				}
+			}
+		}
+
+		Tournees.push_back(tmp_l);
+		i++;
 	}
 
+	//	for(i = 0; i < Tournees.size();i++){
+	//		for(int j = 0; j < Tournees[i].size(); j++){
+	//			printf(" %d ",Tournees[i][j]);
+	//		}
+	//		printf("\n");
+	//	}
 
 	env.end();
 
 
-	list<pair<int,int> >::const_iterator itp;
-
-
-	ofstream ficsol((filename+".ak_cplex").c_str());
-	double best_length=0;
-	for(itp = Lsol.begin(); itp!=Lsol.end();itp++) {
-	 best_length += g->get_distance(itp->first,itp->second);
-	 ficsol<<itp->first<<" "<<itp->second<<endl;
-	}
-
-	ficsol.close();
-
-	cout<<"Tour found of value : "<<best_length<<endl;
+	g->write_dot_G(filename,Tournees);
 
 }
 
@@ -296,13 +320,6 @@ void MTZ_Formulation(Graph_AK * g, string filename, vector<vector<IloNumVar > > 
 //}
 
 
-
-//void branch_and_cut(Graph_AK & g, vector<vector<IloNumVar > > & x, IloEnv env, IloCplex & cplex){
-//
-//	  /// ADD SEPARATION CALLBACK
-//	  cplex.use(UsercutCutMinSeparation(env,g,x));
-//
-//}
 
 
 

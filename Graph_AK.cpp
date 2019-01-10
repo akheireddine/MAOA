@@ -77,7 +77,7 @@ Graph_AK::Graph_AK (string vrp_filename, int upbound) {
   fic.close();
 
   initialize_distance_matrix();
-  construct_Undirected_Lemon_Graph();
+//  construct_Undirected_Lemon_Graph();
 
 //  print_distance_matrix();
 
@@ -277,11 +277,14 @@ void Graph_AK::construct_Undirected_Lemon_Graph(){
 //		L_rtnmap[L_GU.id(LGU_name_node[i])] = i;
 //	}
   }
+
   LGU_name_link.resize(n,vector<lemon::ListGraph::Edge>(n));
 
-  for (int i = 0; i < n - 1; i++){
+  for (int i = 0; i < n; i++){
     for (int j = i + 1; j < n; j++ ){
 //    	if(i != id_depot or j != id_depot){
+
+    	if( (x_value[i][j] + x_value[j][i]) > 0 )
     		LGU_name_link[i][j] = L_GU.addEdge(LGU_name_node[i],LGU_name_node[j]);
 //    	}
     }
@@ -295,6 +298,7 @@ void Graph_AK::construct_Undirected_Lemon_Graph(){
 
 double Graph_AK::undirected_MinimumCut(vector<int >& W){
 
+  construct_Undirected_Lemon_Graph();
 
   lemon::ListGraph::EdgeMap<float> L_cost(L_GU);
   lemon::ListGraph::NodeMap<bool> mincut(L_GU);
@@ -304,17 +308,18 @@ double Graph_AK::undirected_MinimumCut(vector<int >& W){
   for (int i = 0; i < n ; i++){
 	  for(int j = i + 1; j < n ; j++){
 //		  if(i != id_depot or j != id_depot)
+		  if(x_value[i][j] + x_value[j][i] > 0 )
 			  L_cost.set(LGU_name_link[i][j],(x_value[i][j] + x_value[j][i]) * PREC);
 	  }
   }
 
   lemon::NagamochiIbaraki<lemon::ListGraph, lemon::ListGraph::EdgeMap<float> > L_NI(L_GU,L_cost);
-  printf("Running\n");
+//  printf("Running\n");
 
   L_NI.run();
 
-  mincutvalue = L_NI.minCutMap (mincut);///(PREC*1.0);
-  printf(" mincut %f\n",mincutvalue);
+  mincutvalue = L_NI.minCutMap (mincut);  //(PREC*1.0);
+//  printf(" mincut %f\n",mincutvalue);
   mincutvalue /= (PREC*1.0);
   W.clear();
   for (int i = 0; i < n; i++){
@@ -399,10 +404,11 @@ bool Graph_AK::has_sub_tour(vector<vector<int> > & W)
 	Dijsktra(L, id_depot, false);
 
 	// debug
-	printf("\n inatteignable from depot \n");
-	for (int j = 0; j < L.size(); j++)
-		printf("%d ", L[j]);
-	printf("\n");
+//	printf("\n inatteignable from depot \n");
+//	for (int j = 0; j < L.size(); j++)
+//		printf("%d ", L[j]);
+//	printf("\n");
+
 	//No circuit
 	if ( L.size() == 0 )
 		return false;
@@ -412,11 +418,11 @@ bool Graph_AK::has_sub_tour(vector<vector<int> > & W)
 		vector<int> tmp_l;
 
 		Dijsktra(tmp_l,L[0],true);
-		printf("atteignable from %d\n", L[0]);
+//		printf("atteignable from %d\n", L[0]);
 
-		for (int j = 0; j < tmp_l.size(); j++)
-			printf("%d ", tmp_l[j]);
-		printf("\n");
+//		for (int j = 0; j < tmp_l.size(); j++)
+//			printf("%d ", tmp_l[j]);
+//		printf("\n");
 
 		W.push_back(tmp_l);
 
@@ -438,48 +444,95 @@ bool Graph_AK::has_sub_tour(vector<vector<int> > & W)
 
 bool Graph_AK::is_feasible_tour(vector<vector<int> > & V){
 
-	int i = 0;
-	float sum;
-	vector<int> L, without_depot_tour;
-	Dijsktra(L, id_depot, true);
+//	int i = 0;
+//	float sum;
+//	vector<int> L, without_depot_tour;
+//	Dijsktra(L, id_depot, true);
+//
+//	if ( L.size() == 0 or (L.size() == 1 and L[0] == id_depot) )
+//		return false;
+//
+//
+//	while(L.size() > 0){
+//		vector<int> new_L;
+//		vector<int> tmp_l;
+//
+//		Dijsktra(tmp_l,L[0],true);
+//		sum = 0;
+//		without_depot_tour.clear();
+//		printf("__________________ TOUR _____________________\n");
+//		for( i = 0; i < tmp_l.size(); i++){
+//			if(tmp_l[i] != id_depot){
+//				without_depot_tour.push_back(tmp_l[i]);
+//				printf(" %d ",tmp_l[i]);
+//				sum += demands_tab[tmp_l[i]];
+//			}
+//		}
+//
+//		if( sum > capacity){
+//			printf("\nsolution non realisable : depassement de la capacité\n");
+//			V.push_back(without_depot_tour);
+//		}
+//
+//		for(int j = 0; j < L.size(); j++){
+//			int k = 0;
+//			while (k < tmp_l.size() and tmp_l[k] != L[j]){
+//				k++;
+//			}
+//			if (k == tmp_l.size())
+//				new_L.push_back(L[j]);
+//		}
+//		L = new_L;
+//	}
+//
+//	return V.size() > 0;
 
-	if ( L.size() == 0 or (L.size() == 1 and L[0] == id_depot) )
-		return false;
 
+
+
+
+	int i, u, v;
+	vector<int> L;
+
+	Dijsktra(L, id_depot,true);
+
+	for(i = 0; i < L.size(); i++){
+		if(L[i] == id_depot){
+			L.erase(L.begin() + i);
+			break;
+		}
+	}
 
 	while(L.size() > 0){
-		vector<int> new_L;
+
 		vector<int> tmp_l;
+		bool still_exists = true;
 
-		Dijsktra(tmp_l,L[0],true);
-		sum = 0;
-		without_depot_tour.clear();
-		printf("__________________ TOUR _____________________\n");
-		for( i = 0; i < tmp_l.size(); i++){
-			if(tmp_l[i] != id_depot){
-				without_depot_tour.push_back(tmp_l[i]);
-				printf(" %d ",tmp_l[i]);
-				sum += demands_tab[tmp_l[i]];
+		u = id_depot;
+		float sum = 0;
+		while( still_exists ){
+			still_exists = false;
+
+			for(int j = 0; j < L.size(); j++){
+				v = L[j];
+				if(v != u and (x_value[u][v] > 0) or (x_value[v][u] > 0)){
+					still_exists = true;
+					sum += demands_tab[v];
+					tmp_l.push_back(v);
+					u = v;
+					L.erase(L.begin() + j);
+					break;
+				}
 			}
 		}
-
-		if( sum > capacity){
-			printf("\nsolution non realisable : depassement de la capacité\n");
-			V.push_back(without_depot_tour);
+		if(sum > capacity){
+			V.push_back(tmp_l);
+			i++;
 		}
-
-		for(int j = 0; j < L.size(); j++){
-			int k = 0;
-			while (k < tmp_l.size() and tmp_l[k] != L[j]){
-				k++;
-			}
-			if (k == tmp_l.size())
-				new_L.push_back(L[j]);
-		}
-		L = new_L;
 	}
 
 	return V.size() > 0;
+
 }
 
 

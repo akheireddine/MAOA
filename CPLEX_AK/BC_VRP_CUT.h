@@ -1,9 +1,12 @@
+#ifndef ____BC_CUT___
+#define ____BC_CUT___
+
 #include <ilcplex/ilocplex.h>
 #include "../Graph_AK.h"
 
 #define epsilon_cplex 0.00001
 
-#define OUTPUT
+//#define OUTPUT
 
 
 
@@ -74,24 +77,12 @@ ILOLAZYCONSTRAINTCALLBACK2(LazyCutSeparation, Graph_AK &, G, vector<vector<IloNu
 
   // Put the linear relaxation values on the edges of graph G
 
-//  for (int i = 0; i < G.get_n(); i++) {
-//  		for (int j = 0; j < G.get_n(); j++) {
-//  			if (i != j)
-//  				printf("%f ", getValue(x[i][j]));
-//  			else
-//  				printf("0.000000 ");
-//  		}
-//  		printf("\n\n");
-//  	}
-//  	printf("\n");
-
   vector< vector<float> > cost_x(G.get_n(),vector<float>(G.get_n(),0.0));
 
   for (i = 0; i < G.get_n()  ; i++){
     for (j = 0 ; j < G.get_n(); j++){
     	if( i != j and i < j){
     		cost_x[i][j] = getValue(x[i][j]);
-//    		cost_x[j][i] = getValue(x[j][i]);
     		if(cost_x[i][j] < epsilon_cplex and getValue(x[j][i]) < epsilon_cplex /* and cost_x[j][i] < epsilon_cplex*/)
     			cost_x[i][j] = 0 ;
     		else
@@ -99,18 +90,6 @@ ILOLAZYCONSTRAINTCALLBACK2(LazyCutSeparation, Graph_AK &, G, vector<vector<IloNu
     	}
     }
   }
-
-//  for (int i = 0; i < G.get_n(); i++) {
-//    		for (int j = 0; j < G.get_n(); j++) {
-//    			if (i != j)
-//    				printf("%f ", cost_x[i][j]);
-//    			else
-//    				printf("0.00y000 ");
-//    		}
-//    		printf("\n\n");
-//    	}
-//    	printf("\n");
-
 
   G.set_x_value(cost_x);
   /* Separation of Cut inequalities */
@@ -132,3 +111,5 @@ ILOLAZYCONSTRAINTCALLBACK2(LazyCutSeparation, Graph_AK &, G, vector<vector<IloNu
 
     }
 }
+
+#endif
