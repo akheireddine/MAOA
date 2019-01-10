@@ -27,7 +27,7 @@ int main (int argc, char**argv){
 
 //    MTZ_Formulation(g, name, x,false);
 
-    Formulation_COUPES(g, name, x, false,false);
+    Formulation_COUPES(g, name, x, true,false);
 
     return 0;
 }

@@ -65,12 +65,48 @@ void Formulation_COUPES(Graph_AK * g, string filename, vector<vector<IloNumVar >
 	env.out() << "Solution status = " << cplex.getStatus() << endl;
 	env.out() << "Solution value  = " << cplex.getObjValue() << endl;
 
+
+	int i = 0;
+	vector<bool> checked(n,false);
+	checked[depot] = true;
+	while(i < n){
+		j = 0;
+		while(!checked[j] and j < n)
+			j++;
+		if (j == n)
+			break;
+
+
+	}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 	list< pair<int,int> > Lsol;
 
 	for(unsigned int i = 0; i < n ; i++){
 	  for (unsigned int j=0;j< n ;j++){
 	   if (i!=j ){
-		   if (cplex.getValue(x[i][j]) == 1 ){//>1-epsilon){
+		   if (cplex.getValue(x[i][j]) == 1){ //>1-epsilon){
 			   Lsol.push_back(make_pair(i,j));
 		   }
 	   }
