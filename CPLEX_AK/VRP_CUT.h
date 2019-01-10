@@ -9,6 +9,7 @@ void Formulation_COUPES(Graph_AK * g, string filename, vector<vector<IloNumVar >
 	IloModel model(env);
 	int n = g->get_n();
 	int nb_var = n*(n - 1);
+	int id_depot = g->get_depot();
 
 	x.resize(nb_var,vector< IloNumVar >(nb_var));
 
@@ -54,8 +55,8 @@ void Formulation_COUPES(Graph_AK * g, string filename, vector<vector<IloNumVar >
 	cplex.exportModel("sortie.lp");
 
 	if ( !cplex.solve() ) {
-	 env.error() << "Failed to optimize LP" << endl;
-	 exit(1);
+		 env.error() << "Failed to optimize LP" << endl;
+		 exit(1);
 	}
 
 
@@ -66,69 +67,102 @@ void Formulation_COUPES(Graph_AK * g, string filename, vector<vector<IloNumVar >
 	env.out() << "Solution value  = " << cplex.getObjValue() << endl;
 
 
-	int i = 0;
-	vector<bool> checked(n,false);
-	checked[depot] = true;
-	while(i < n){
-		j = 0;
-		while(!checked[j] and j < n)
-			j++;
-		if (j == n)
-			break;
+//	list< pair<int,int> > Lsol;
+//
+//	for(unsigned int i = 0; i < n ; i++){
+//	  for (unsigned int j=0;j< n ;j++){
+//	   if (i!=j ){
+//		   if (cplex.getValue(x[i][j]) == 1){ //>1-epsilon){
+//			   Lsol.push_back(make_pair(i,j));
+//		   }
+//	   }
+//	  }
+//	}
+//
+//
+//	env.end();
+//
+//
+//	list<pair<int,int> >::const_iterator itp;
+//
+//
+//	ofstream ficsol((filename+".ak_cplex").c_str());
+//	double best_length=0;
+//	for(itp = Lsol.begin(); itp!=Lsol.end();itp++) {
+//	 best_length += g->get_distance(itp->first,itp->second);
+//	 ficsol<<itp->first<<" "<<itp->second<<endl;
+//	}
+//
+//	ficsol.close();
+//
+//	cout<<"Tour found of value : "<<best_length<<endl;
 
 
+
+
+
+	/***
+	 * TODO SAUVEGARDE DES TOURNEES SOUS FORMAT FOUILHOUX
+	 */
+
+	int i, u, v;
+	vector<vector<int> > Tournees;
+	vector<int> L;
+
+	for(i = 0; i < n; i++)
+		if(i != id_depot)
+			L.push_back(i);
+
+	while(L.size() > 0){
+
+		vector<int> tmp_l;
+		bool still_exists = true;
+
+//		L.pop_back();
+
+//		tmp_l.push_back(u);
+//		int starting_point = id_depot;
+
+		u = id_depot;
+
+//		printf("\n tournee : \n");
+
+		while( still_exists ){
+			still_exists = false;
+
+			for(int j = 0; j < L.size(); j++){
+				v = L[j];
+				if(v != u and (cplex.getValue(x[u][v]) > 0) or (cplex.getValue(x[v][u]) > 0)){
+//					printf(" u %d    v %d    ",u,v);
+
+					still_exists = true;
+//					if(v != id_depot){
+					tmp_l.push_back(v);
+					u = v;
+//					}
+					L.erase(L.begin() + j);
+
+					break;
+				}
+			}
+		}
+
+		Tournees.push_back(tmp_l);
+		i++;
 	}
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-	list< pair<int,int> > Lsol;
-
-	for(unsigned int i = 0; i < n ; i++){
-	  for (unsigned int j=0;j< n ;j++){
-	   if (i!=j ){
-		   if (cplex.getValue(x[i][j]) == 1){ //>1-epsilon){
-			   Lsol.push_back(make_pair(i,j));
-		   }
-	   }
-	  }
-	}
+//	for(i = 0; i < Tournees.size();i++){
+//		for(int j = 0; j < Tournees[i].size(); j++){
+//			printf(" %d ",Tournees[i][j]);
+//		}
+//		printf("\n");
+//	}
 
 
 	env.end();
 
 
-	list<pair<int,int> >::const_iterator itp;
+	g->write_dot_G(filename,Tournees);
 
-
-	ofstream ficsol((filename+".ak_cplex").c_str());
-	double best_length=0;
-	for(itp = Lsol.begin(); itp!=Lsol.end();itp++) {
-	 best_length += g->get_distance(itp->first,itp->second);
-	 ficsol<<itp->first<<" "<<itp->second<<endl;
-	}
-
-	ficsol.close();
-
-	cout<<"Tour found of value : "<<best_length<<endl;
 
 }

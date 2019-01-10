@@ -18,18 +18,11 @@ bool  find_ViolatedCutCst_INTEGER(IloEnv env, Graph_AK & G,  vector<vector<IloNu
   // Find a minimum cut
 
   test = G.has_sub_tour(W);
-  cout<<"********* has sub tour *************"<<endl;
+  test = test or G.is_feasible_tour(W);
 
 
   if (test) {
 
-	printf("TRUE B %d\n",W.size());
-	for(i = 0; i < W.size(); i++){
-		for(j = 0; j < W[i].size(); j++){
-			printf("%d ",W[i][j]);
-		}
-		printf("\n");
-	}
 	// Found a violated inequality
 
 	for(i = 0; i < W.size(); i++){
@@ -53,15 +46,12 @@ bool  find_ViolatedCutCst_INTEGER(IloEnv env, Graph_AK & G,  vector<vector<IloNu
 			}
 			b += G.get_demand(u);
 		}
-
 		b = ceil(b/G.get_capacity());
 		ViolatedCst.push_back(expr >= b);
 	}
-	  printf("A IN\n");
 
 	return true;
   }
-  printf("A OUT\n");
 
   return false;
 
@@ -123,7 +113,6 @@ ILOLAZYCONSTRAINTCALLBACK2(LazyCutSeparation, Graph_AK &, G, vector<vector<IloNu
 
 
   G.set_x_value(cost_x);
-  cout<<"********* set x value  *************"<<endl;
   /* Separation of Cut inequalities */
 
   if (find_ViolatedCutCst_INTEGER(getEnv(),G,x, ViolatedCst)){
