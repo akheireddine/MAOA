@@ -19,15 +19,14 @@ int main (int argc, char**argv){
     name=argv[1];
     int m = atoi(argv[2]);
 
-
     Graph_AK * g = new Graph_AK(name+".vrp", m);
 
     vector<vector<IloNumVar > > x;
 
 
-    MTZ_Formulation(g, name, x,true,true);
+//    MTZ_Formulation(g, name, x,true,true);
 
-//    Formulation_COUPES(g, name, x, true,false);
+    Formulation_COUPES(g, name, x, true,false);
 
     return 0;
 }
