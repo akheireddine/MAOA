@@ -139,6 +139,29 @@ void create_binary_undirected_var_X(int n, vector<vector<IloNumVar > > & x, IloE
     }
 }
 
+void add_in_of_client_undirected_constraint(Graph_AK * g, vector<vector<IloNumVar> > x, IloEnv env, IloRangeArray & Constraints){
+	int n = g->get_n();
+	int nbcst = Constraints.getSize();
+
+	for(int i = 0; i < n; i++){
+		IloExpr c3(env);
+		if( (i != g->get_depot())){
+			for(int j = 0; j < n ; j++){
+				if( (j!=i) /*and j!= depot*/){   // error?
+					c3 += x[i][j];
+				}
+			}
+			Constraints.add(c3 == 1);
+			ostringstream nomcst;
+			nomcst.str("");
+			nomcst<<"(3_"<<i<<")";
+//			cout << "(3_"<<i<<")"<< Constraints[nbcst] << endl;
+			Constraints[nbcst].setName(nomcst.str().c_str());
+			nbcst++;
+		}
+	}
+
+}
 
 void add_out_of_client_undirected_constraint(Graph_AK * g, vector<vector<IloNumVar> > x, IloEnv env, IloRangeArray & Constraints){
 	int n = g->get_n();
