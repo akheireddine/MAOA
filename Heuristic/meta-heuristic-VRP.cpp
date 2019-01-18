@@ -15,11 +15,12 @@ void script_metaheuristic(string path){
     }
 
     struct dirent *lecture;
+    int m = 10;
      while ((lecture = readdir(rep)) != NULL) {
     	 string f_name = (lecture->d_name);
          if( f_name.find(".vrp") !=  std::string::npos ){
         	cout<<" FILE : "<<f_name<<endl;
-            Graph_AK * g = new Graph_AK(path+"/"+f_name);
+            Graph_AK * g = new Graph_AK(path+"/"+f_name,m);
 			float value = g->run_metaheuristic();
 			fic<<f_name<<" "<<value<<endl;
 			//g->write_dot_G(path+"/plots/"+f_name,g->metaheuristic_routes_tab);
@@ -37,21 +38,23 @@ int main(int argc, char**argv){
 
 	string name, nameext;
 
-	if(argc!=2){
+	if(argc!=3){
 		cerr<<"Error arguments"<<endl;
 		return 1;
 	}
 	name=argv[1];
 	nameext=name+".vrp";
 
-	Graph_AK * g = new Graph_AK(nameext);
+    int m = atoi(argv[2]);
+
+	Graph_AK * g = new Graph_AK(nameext,m);
 
 	float value = g->run_metaheuristic();
 	printf("\nbest solution %.2f\n", value);
 
-	//	g->write_dot_G(filename,g->metaheuristic_routes_tab);
+//	g->write_dot_G(filename,g->metaheuristic_routes_tab);
 
-
+	g->print_solution();
 
 //	script_metaheuristic("Instances/A");
 	return 0;

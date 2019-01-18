@@ -265,7 +265,20 @@ float Graph_AK::euclidean_distance(int i, int j){
 }
 
 
+vector<vector<int> > Graph_AK::get_meta_solution(){
+	vector<vector<int> > routes;
 
+	for(int i = 0; i < metaheuristic_routes_tab.size(); i++){
+		if(metaheuristic_routes_tab[i].size() == 0)
+			continue;
+		routes.push_back(metaheuristic_routes_tab[i]);
+	}
+	return routes;
+}
+
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 
 void Graph_AK::construct_Undirected_Lemon_Graph(){
@@ -352,8 +365,9 @@ void Graph_AK::set_x_value(vector< vector<float> > cost_x){
 		}
 	}
 
-
+//	printf("MATRIX VAR VALUE :\n");
 //	for (int i = 0; i < n; i++) {
+//		printf("%d : ",i);
 //		for (int j = 0; j < n; j++) {
 //			printf("%f ", x_value[i][j]);
 //		}
@@ -377,11 +391,10 @@ void Graph_AK::Dijsktra(vector<int> & L, int src, bool atteignable){
 		sptSet[u] = true;
 		for (int v = 0; v < n; v++){
 			if (v != u)
-				if ( !sptSet[v] and (x_value[u][v] != 0 or x_value[v][u] != 0)){
+				if ( !sptSet[v] and (x_value[u][v] > 0 or x_value[v][u] > 0)){
 					E.push_back(v);
 				}
 		}
-
 	}
 
 	for(int i = 0; i < n; i++){
@@ -404,7 +417,7 @@ bool Graph_AK::has_sub_tour(vector<vector<int> > & W)
 	Dijsktra(L, id_depot, false);
 
 	// debug
-//	printf("\n inatteignable from depot \n");
+//	printf("\n Inatteignable from depot : \n\t");
 //	for (int j = 0; j < L.size(); j++)
 //		printf("%d ", L[j]);
 //	printf("\n");
@@ -418,10 +431,11 @@ bool Graph_AK::has_sub_tour(vector<vector<int> > & W)
 		vector<int> tmp_l;
 
 		Dijsktra(tmp_l,L[0],true);
-//		printf("atteignable from %d\n", L[0]);
 
+//		printf("atteignable from %d\n\t", L[0]);
+//
 //		for (int j = 0; j < tmp_l.size(); j++)
-//			printf("%d ", tmp_l[j]);
+//			printf(" %d ", tmp_l[j]);
 //		printf("\n");
 
 		W.push_back(tmp_l);
@@ -443,53 +457,6 @@ bool Graph_AK::has_sub_tour(vector<vector<int> > & W)
 
 
 bool Graph_AK::is_feasible_tour(vector<vector<int> > & V){
-
-//	int i = 0;
-//	float sum;
-//	vector<int> L, without_depot_tour;
-//	Dijsktra(L, id_depot, true);
-//
-//	if ( L.size() == 0 or (L.size() == 1 and L[0] == id_depot) )
-//		return false;
-//
-//
-//	while(L.size() > 0){
-//		vector<int> new_L;
-//		vector<int> tmp_l;
-//
-//		Dijsktra(tmp_l,L[0],true);
-//		sum = 0;
-//		without_depot_tour.clear();
-//		printf("__________________ TOUR _____________________\n");
-//		for( i = 0; i < tmp_l.size(); i++){
-//			if(tmp_l[i] != id_depot){
-//				without_depot_tour.push_back(tmp_l[i]);
-//				printf(" %d ",tmp_l[i]);
-//				sum += demands_tab[tmp_l[i]];
-//			}
-//		}
-//
-//		if( sum > capacity){
-//			printf("\nsolution non realisable : depassement de la capacité\n");
-//			V.push_back(without_depot_tour);
-//		}
-//
-//		for(int j = 0; j < L.size(); j++){
-//			int k = 0;
-//			while (k < tmp_l.size() and tmp_l[k] != L[j]){
-//				k++;
-//			}
-//			if (k == tmp_l.size())
-//				new_L.push_back(L[j]);
-//		}
-//		L = new_L;
-//	}
-//
-//	return V.size() > 0;
-
-
-
-
 
 	int i, u, v;
 	vector<int> L;
@@ -526,6 +493,10 @@ bool Graph_AK::is_feasible_tour(vector<vector<int> > & V){
 			}
 		}
 		if(sum > capacity){
+//			printf(" NO FEASABLE TOUR :\n \t");
+//			for(int k = 0; k< tmp_l.size(); k++)
+//				printf(" %d ",tmp_l[k]);
+//			printf("\n");
 			V.push_back(tmp_l);
 			i++;
 		}
@@ -538,39 +509,7 @@ bool Graph_AK::is_feasible_tour(vector<vector<int> > & V){
 
 
 
-//void convert_solution_into_routes(string filename){
-//	  ostringstream FileName;
-//	  FileName.str("");
-//	  FileName <<InstanceName.c_str() << ".vrp";
-//	  ofstream fic_write(FileName.str().c_str());
-//
-//	  FileName.str("");
-//	  FileName <<InstanceName.c_str() << ".links";
-//	  ifstream fic_read(filename.c_str());
-//
-//	  int i = 0,index = 1;
-//	  int u,v;
-//	  string line;
-//
-//	  vector<int> index_route(n,0);
-//	  vector<vector<int> > routes;
-//
-//	  while(!fic_read.eof()){
-//		  getline(fic_read,line);
-//		  sscanf(line.c_str(), "%d %d", &u, &v);
-//
-//		  if()
-//		  if( u != id_depot and v != id_depot ){
-//			  if( (index_route[u] != 0 || index_route[v] != 0)){
-//
-//			  }
-//		  }
-//
-//	  }
-//
-//
 
-//}
 
 
 
@@ -605,7 +544,18 @@ void Graph_AK::write_dot_G(string InstanceName,vector<vector<int> > routes){
     colors.push_back("yellow");
     colors.push_back("magenta");
     colors.push_back("violetred");
-
+    colors.push_back("darkorchid");
+    colors.push_back("darksalmon");
+    colors.push_back("gold");
+    colors.push_back("plum");
+    colors.push_back("tan");
+    colors.push_back("darkorange");
+    colors.push_back("rosybrown");
+    colors.push_back("darkolivegreen3");
+    colors.push_back("lightblue3");
+    colors.push_back("firebrick");
+    colors.push_back("lightslategray");
+    colors.push_back("lightskyblue1");
 
 
   if(routes.size() > colors.size()){

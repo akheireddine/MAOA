@@ -68,6 +68,8 @@ public:
 	int get_m(){ return m;};
 	float get_distance(int i, int j){ return distance_mat[i][j];};
 	float get_x_value(int i,int j){ return x_value[i][j]; };
+	vector<vector<int> > get_meta_solution();
+
 };
 
 #endif

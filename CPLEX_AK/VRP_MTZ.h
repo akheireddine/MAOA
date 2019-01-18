@@ -199,7 +199,7 @@ void MTZ_Formulation(Graph_AK * g, string filename, vector<vector<IloNumVar > > 
 	IloCplex cplex(model);
 
 	if(with_lazycut){
-		cplex.use(LazyCutSeparation(env, *g, x));
+		cplex.use(LazyDIRECTEDCutSeparation(env, *g, x));
 	}
 	if(with_usercut){
 		cplex.use(UsercutCutMinSeparation(env, *g,x));
