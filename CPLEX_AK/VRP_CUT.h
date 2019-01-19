@@ -152,7 +152,7 @@ void add_depot_constraint(Graph_AK *g, vector<vector <IloNumVar> > x, IloEnv env
     		c1 += x[depot][j];
     	}
     }
-	Constraints.add(c1 <= 2*g->get_m());
+	Constraints.add(c1 == 2*g->get_m());
 	ostringstream nomcst;
 	nomcst.str("");
 	nomcst<<"(1)";
@@ -188,7 +188,7 @@ void add_client_constraint(Graph_AK * g, vector<vector<IloNumVar> > x, IloEnv en
 }
 
 
-void Formulation_COUPES_UNDIRECTED(Graph_AK *g, string filename, vector<vector<IloNumVar > > & x, bool with_lazycut, bool with_usercut){
+void Formulation_COUPES_UNDIRECTED(Graph_AK *g, string filename, vector<vector<IloNumVar > > & x, bool with_lazycut, bool with_usercut,bool start_from_heuristic){
 
 	IloEnv   env;
 	IloModel model(env);
@@ -226,61 +226,54 @@ void Formulation_COUPES_UNDIRECTED(Graph_AK *g, string filename, vector<vector<I
 		cplex.use(LazyUNDIRECTEDCutSeparation(env, *g,x));
 	}
 
-//	if(with_usercut){
-//		cplex.use(LazyCutSeparation(env, *g,x));
-//	}
-
-
+	if(with_usercut){
+		cplex.use(UserCutTabuSeparation(env, *g,x));
+	}
 
 	//START FROM A HEURISTIC SOLUTION
+	if(start_from_heuristic){
+		g->run_metaheuristic();
+		vector<vector< int > > starting_solution = g->get_meta_solution();
 
-//	g->run_metaheuristic();
-//	vector<vector< int > > starting_solution = g->get_meta_solution();
-//
-//	// Translate from encoding by a list of nodes to variable x
-//	vector<vector<int> > startx;
-//	startx.resize(n,vector<int>(n,0));
-//
-//	for(int t = 0; t < starting_solution.size(); t++){
-//		vector<int> tournee = starting_solution[t];
-//		for(int k = 1; k < tournee.size() ; k++) {
-//			int u = tournee[k-1];
-//			int v = tournee[k];
-//			if (u < v)
-//				startx[u][v] = 1;
-//			else
-//				startx[v][u] = 1;
-//		}
-//		if(id_depot < tournee[0])
-//			startx[id_depot][tournee[0]] = 1;
-//		else
-//			startx[tournee[0]][id_depot] = 1;
-//	}
-//
-//	IloNumVarArray startVar(env);
-//	IloNumArray startVal(env);
-//	for (int i = 0; i < n; i++){
-//		for (int j = i+1; j < n; j++) {
-//			startVar.add(x[i][j]);
-//			startVal.add(startx[i][j]); // startx is your heuristic values
-//		}
-//	}
-//
-//	cout<<startVar<<endl;
-//	for(int i = 0; i < n;i++){
-//		for(int j= i+1; j<n ;j++)
-//			printf(" %d ",startx[i][j]);
-////		printf("\n")
-//	}
-//	cplex.addMIPStart(startVar, startVal, IloCplex::MIPStartCheckFeas);
-//	startVal.end();
-//	startVar.end();
+		// Translate from encoding by a list of nodes to variable x
+		vector<vector<int> > startx;
+		startx.resize(n,vector<int>(n,0));
+
+		for(int t = 0; t < starting_solution.size(); t++){
+			vector<int> tournee = starting_solution[t];
+			for(int k = 1; k < tournee.size() ; k++) {
+				int u = tournee[k-1];
+				int v = tournee[k];
+				if (u < v)
+					startx[u][v] = 1;
+				else
+					startx[v][u] = 1;
+			}
+			if(id_depot < tournee[0])
+				startx[id_depot][tournee[0]] = 1;
+			else
+				startx[tournee[0]][id_depot] = 1;
+		}
+
+		IloNumVarArray startVar(env);
+		IloNumArray startVal(env);
+		for (int i = 0; i < n; i++){
+			for (int j = i+1; j < n; j++) {
+				startVar.add(x[i][j]);
+				startVal.add(startx[i][j]); // startx is your heuristic values
+			}
+		}
+
+		cplex.addMIPStart(startVar, startVal, IloCplex::MIPStartCheckFeas);
+		startVal.end();
+		startVar.end();
+	}
 
 
 
 
-	cout<<"Wrote LP on file"<<endl;
-	cplex.exportModel("sortie.lp");
+//	cout<<"Wrote LP on file"<<endl;
+//	cplex.exportModel("sortie.lp");
 
 
 	if ( !cplex.solve() ) {
@@ -376,32 +369,11 @@ void Formulation_COUPES_UNDIRECTED(Graph_AK *g, string filename, vector<vector<I
 		i++;
 	}
 
-//	for(i = 0; i < Tournees.size();i++){
-//		for(int j = 0; j < Tournees[i].size(); j++){
-//			printf(" %d ",Tournees[i][j]);
-//		}
-//		printf("\n");
-//	}
-
 
 	env.end();
 
 
 	g->write_dot_G(filename,Tournees);
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 

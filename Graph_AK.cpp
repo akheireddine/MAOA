@@ -3,6 +3,7 @@
 #include <stdio.h>
 #include <iostream>
 #include <sstream>
+#include <set>
 #include <fstream>
 #include <math.h>
 #include <limits.h>
@@ -509,6 +510,73 @@ bool Graph_AK::is_feasible_tour(vector<vector<int> > & V){
 
 
 
+bool Graph_AK::tabu_search(vector<vector<int> > & S){
+
+	float smax, smin, M;
+	int v, iter;
+	for(int ntime = 0; ntime < NTIME; ntime++){
+		set<int> S, out_S, in_S, C_add, C_remove;
+		vector<int> Tabu_list(n,0);
+		vector<int> cpt_list(n,0);
+
+		for(int i = 0; i < n; i++){
+			if(i != id_depot)
+				out_S.insert(i);
+		}
+
+		v = select_random_first_node();
+
+		S.insert(v);
+		in_S.insert(v);
+		out_S.erase(v);
+		Tabu_list[v] = 1;
+
+		for(int p = 0; p < k; p++){
+			while(true){
+				smax = capacity * (p + ULIMIT) - sum_of_demands(S);
+
+				set_C_addable(out_S, smax, Tabu_list);
+				if(C_add.size() == 0)
+					break;
+
+				M = get_max_var(C_add, Tabu_list);
+				v = random_selection(C_add,Tabu_list, M);
+				in_S.add(v);
+				out_S.erase(v);
+				Tabu_list[v] = 1;
+				check_cut_equation(S);
+			}
+			iter = 0;
+			while(iter < TOPE){
+				float dS = sum_of_demands(S)
+				smax = C * (p + ULIMIT) - dS;
+				smin = dS - C * (p - ILIMIT);
+
+				set_C_addable(out_S, smax, Tabu_list);
+				set_C_removable(in_S, smin, Tabu_list);
+				enable_actions(C_add,TLL);
+				enable_actions(C_remove,TLL);
+
+				if(C_add.size() + C_remove.size() == 0)
+					break;
+
+				v = select_variable_is_maximum(C_add, C_remove, S);
+
+				if()
+
+			}
+
+
+		}
+
+
+
+
+	}
+
+	return false;
+
+}
 
 
 

@@ -59,6 +59,7 @@ public:
 	bool has_sub_tour(vector<vector<int> > & W);
 	void Dijsktra(vector<int> & L, int src, bool atteignable);
 	bool is_feasible_tour(vector<vector<int> > & V);
+	bool tabu_search(vector<vector<int> > & S);
 
 
 	int get_n(){return n;};
