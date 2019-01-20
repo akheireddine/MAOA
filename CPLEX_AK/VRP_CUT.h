@@ -233,7 +233,8 @@ void Formulation_COUPES_UNDIRECTED(Graph_AK *g, string filename, vector<vector<I
 
 	//START FROM A HEURISTIC SOLUTION
 	if(start_from_heuristic){
-		g->run_metaheuristic();
+		float val = g->run_metaheuristic();
+		printf("HEURISTIC VALUE : %.2f\n",val);
 		vector<vector< int > > starting_solution = g->get_meta_solution();
 
 		// Translate from encoding by a list of nodes to variable x
@@ -261,18 +262,31 @@ void Formulation_COUPES_UNDIRECTED(Graph_AK *g, string filename, vector<vector<I
 		for (int i = 0; i < n; i++){
 			for (int j = i+1; j < n; j++) {
 				startVar.add(x[i][j]);
-				startVal.add(startx[i][j]); // startx is your heuristic values
+				startVal.add(int(startx[i][j])); // startx is your heuristic values
 			}
 		}
 
-		cplex.addMIPStart(startVar, startVal, IloCplex::MIPStartCheckFeas);
+		cplex.addMIPStart(startVar, startVal,IloCplex::MIPStartAuto, "INITI_SOLUTION_FROM_HEURISTIC_AK");//IloCplex::MIPStartAuto);// IloCplex::MIPStartCheckFeas);
 		startVal.end();
 		startVar.end();
+
+//		cplex.setParam(IloCplex::Param::Simplex::Limits::UpperObj,val);
+
 	}
 
 
+//   cplex.setParam(IloCplex::Param::MIP::Cuts::Gomory,2);
+
+//	cplex.setParam(IloCplex::Param::MIP::Limits::TreeMemory, 150);
+
+//	cplex.setParam(IloCplex::Param::MIP::Limits::EachCutLimit,0);   // elimine zero half cut et covers
+
+//	cplex.setParam(IloCplex::Param::MIP::Limits::CutsFactor,1);    // default 4
+
+//	cplex.setParam(IloCplex::Param::WorkMem,150);
 
 
+//	cplex.setParam(IloCplex::Param::TimeLimit, 60);
 //	cout<<"Wrote LP on file"<<endl;
 //	cplex.exportModel("sortie.lp");
 
