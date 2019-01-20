@@ -188,6 +188,7 @@ void add_client_constraint(Graph_AK * g, vector<vector<IloNumVar> > x, IloEnv en
 }
 
 
+
 void Formulation_COUPES_UNDIRECTED(Graph_AK *g, string filename, vector<vector<IloNumVar > > & x, bool with_lazycut, bool with_usercut,bool start_from_heuristic){
 
 	IloEnv   env;
@@ -298,7 +299,7 @@ void Formulation_COUPES_UNDIRECTED(Graph_AK *g, string filename, vector<vector<I
    for(unsigned int i = 0; i < x.size() ; i++){
 	  for (unsigned int j=i+1;j< x.size() ;j++){
 	   if (i!=j ){
-		   if (cplex.getValue(x[i][j]) >1-epsilon){
+		   if (cplex.getValue(x[i][j]) >1-epsilonz){
 			   Lsol.push_back(make_pair(i,j));
 		   }
 	   }

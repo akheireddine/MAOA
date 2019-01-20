@@ -8,7 +8,10 @@
 #include <math.h>
 #include <limits.h>
 #include <lemon/lgf_writer.h>
-
+#include <algorithm>
+#include <random>
+#include <chrono>
+#include <experimental/random>
 
 #include <ctime>
 
@@ -510,14 +513,173 @@ bool Graph_AK::is_feasible_tour(vector<vector<int> > & V){
 
 
 
-bool Graph_AK::tabu_search(vector<vector<int> > & S){
+
+
+
+
+
+
+
+
+
+
+
+#define NTIME 1				//between 1 and 6
+#define ILIMIT 0.2			// between 0.1 and 0.25
+#define ULIMIT 0.4			// between 0.3 and 0.45
+#define TOPE 5				// between 5 and 60
+#define TLL 5				// between 5 and 15
+#define PER 0.3				// between 0.2 and 0.6 if NTIME >=2, else 0
+
+int Graph_AK::select_random_first_node(){
+
+	vector<int> list_id;
+	for(int i = 0; i < n; i++){
+		if( i != id_depot )
+			list_id.push_back(i);
+	}
+
+	unsigned seed = std::chrono::system_clock::now()
+								   .time_since_epoch()
+								   .count();
+
+	shuffle (list_id.begin(), list_id.end(), std::default_random_engine(seed));
+
+	int ind = std::experimental::randint(0, (int) list_id.size() - 1);
+
+	return list_id[ind];
+}
+
+
+
+set<int> Graph_AK::compute_C_removable(set<int> in_S, float smin, vector<int> Tabu_list){
+	set<int> c_remove;
+	for(set<int>::iterator elem = in_S.begin(); elem != in_S.end(); ++elem){
+		if( (demands_tab[*elem] <= smin)   and (Tabu_list[*elem] != 1))
+			c_remove.insert(*elem);
+	}
+
+	return c_remove;
+}
+
+set<int> Graph_AK::compute_C_addable(set<int> out_S, float smax, vector<int> Tabu_list){
+	set<int> c_add;
+	for(set<int>::iterator elem = out_S.begin(); elem != out_S.end(); ++elem){
+		if( (demands_tab[*elem] <= smax)   and (Tabu_list[*elem] != 2))
+			c_add.insert(*elem);
+	}
+
+	return c_add;
+}
+
+float Graph_AK::compute_xS(set<int> S, int elem){
+	float sum = 0.;
+	for(set<int>::iterator i = S.begin(); i != S.end(); ++i){
+		sum += x_value[*i][elem];
+	}
+
+	return sum;
+}
+
+float Graph_AK::get_max_value_can_get(set<int> C_add, vector<int> Tabu_list, set<int> S){
+	float maxi = -1;
+	for(set<int>::iterator elem = C_add.begin(); elem != C_add.end(); ++elem){
+		if(Tabu_list[*elem] != 2){
+			float val = compute_xS(S,*elem);
+			if( maxi == -1 or val > maxi){
+				maxi = val;
+			}
+		}
+	}
+	return maxi;
+}
+
+
+
+int Graph_AK::random_selection_M(set<int> C_add, vector<int> Tabu_list, set<int> S, float M, int ntime){
+	vector<int> list_node;
+	int per_ = 0;
+	if (ntime >= 2)
+		per_ = PER;
+
+	for(set<int>::iterator elem = C_add.begin(); elem != C_add.end(); ++elem){
+		if(Tabu_list[*elem] != 2){
+			float val = compute_xS(S,*elem);
+			if( (val <= M)  and (val >= M - per_))
+				list_node.push_back(*elem);
+		}
+	}
+
+	int ind = std::experimental::randint(0, (int)list_node.size() - 1);
+
+	return list_node[ind];
+
+}
+
+
+//TODO
+void check_cut_equation(set<int> S, vector<vector<int> > & W){
+	vector<int> S_vect(S.begin(), S.end());
+	W.push_back(S_vect);
+}
+
+float Graph_AK::sum_of_demands(set<int> S){
+	float sum = 0.;
+
+	for(set<int>::iterator elem = S.begin(); elem  != S.end(); ++elem){
+		sum += demands_tab[*elem];
+	}
+
+	return sum;
+}
+
+
+void enable_actions(set<int> C_set, vector<int> Tabu_cpt_list){
+
+	for(set<int>::iterator elem = C_set.begin(); elem != C_set.end(); ++elem){
+		if(Tabu_cpt_list[*elem] > TLL)
+			Tabu_cpt_list[*elem] = 0;
+	}
+}
+
+int Graph_AK::maximum_reached_add_remove(set<int> C_add, set<int> C_remove, set<int> S){
+	float maxi = -1;
+	int v_id = (*C_add.begin());
+	for(set<int>::iterator elem = C_add.begin(); elem != C_add.end(); ++elem){
+		float val = compute_xS(S,*elem);
+		if(maxi == -1 or val > maxi){
+			maxi = val;
+			v_id = *elem;
+		}
+	}
+
+	set<int> not_in_S;
+	for(int i = 0 ; i < n ; i++){
+		if( i != id_depot and  ( find(S.begin(), S.end(), i) != S.end()) )
+			not_in_S.insert(i);
+	}
+
+	for(set<int>::iterator elem = C_remove.begin(); elem != C_remove.end(); ++elem){
+		float val = compute_xS(not_in_S,*elem);
+		if(maxi == -1 or val > maxi){
+			maxi = val;
+			v_id = *elem;
+		}
+	}
+	return v_id;
+}
+
+
+
+
+bool Graph_AK::tabu_search(vector<vector<int> > & W){
 
 	float smax, smin, M;
 	int v, iter;
 	for(int ntime = 0; ntime < NTIME; ntime++){
 		set<int> S, out_S, in_S, C_add, C_remove;
 		vector<int> Tabu_list(n,0);
-		vector<int> cpt_list(n,0);
+		vector<int> Tabu_cpt_list(n,0);
 
 		for(int i = 0; i < n; i++){
 			if(i != id_depot)
@@ -531,51 +693,60 @@ bool Graph_AK::tabu_search(vector<vector<int> > & S){
 		out_S.erase(v);
 		Tabu_list[v] = 1;
 
-		for(int p = 0; p < k; p++){
-			while(true){
+		for(int p = 1; p < m; p++){
+			bool found_expansion = true;
+
+			//EXPANSION PHASE
+			while(found_expansion){
 				smax = capacity * (p + ULIMIT) - sum_of_demands(S);
+				C_add = compute_C_addable(out_S, smax, Tabu_list);
 
-				set_C_addable(out_S, smax, Tabu_list);
-				if(C_add.size() == 0)
-					break;
+				if(C_add.size() == 0){
+					found_expansion = false;
+					continue;
+				}
 
-				M = get_max_var(C_add, Tabu_list);
-				v = random_selection(C_add,Tabu_list, M);
-				in_S.add(v);
+				M = get_max_value_can_get(C_add, Tabu_list, S);
+				v = random_selection_M(C_add,Tabu_list, S, M, ntime);
+				in_S.insert(v);
 				out_S.erase(v);
 				Tabu_list[v] = 1;
-				check_cut_equation(S);
+				check_cut_equation(S, W);
 			}
+
+			//INTERCHANGE PHASE
 			iter = 0;
 			while(iter < TOPE){
-				float dS = sum_of_demands(S)
-				smax = C * (p + ULIMIT) - dS;
-				smin = dS - C * (p - ILIMIT);
+				float dS = sum_of_demands(S);
+				smax = capacity * (p + ULIMIT) - dS;
+				smin = dS - capacity * (p - ILIMIT);
 
-				set_C_addable(out_S, smax, Tabu_list);
-				set_C_removable(in_S, smin, Tabu_list);
-				enable_actions(C_add,TLL);
-				enable_actions(C_remove,TLL);
+				compute_C_addable(out_S, smax, Tabu_list);
+				compute_C_removable(in_S, smin, Tabu_list);
+				enable_actions(C_add, Tabu_cpt_list);
+				enable_actions(C_remove, Tabu_cpt_list);
 
 				if(C_add.size() + C_remove.size() == 0)
 					break;
 
-				v = select_variable_is_maximum(C_add, C_remove, S);
+				v = maximum_reached_add_remove(C_add, C_remove, S);
 
-				if()
+				if( find(out_S.begin(), out_S.end(), v) != out_S.end() ){
+					Tabu_list[v] = 1;
+					in_S.insert(v);
+					out_S.erase(v);
+				} else {
+					Tabu_list[v] = 2;
+					in_S.erase(v);
+					out_S.insert(v);
+				}
+				check_cut_equation(S, W);
 
+				iter++;
 			}
-
-
 		}
-
-
-
-
 	}
-
-	return false;
-
+	return W.size() > 0;
 }
 
 

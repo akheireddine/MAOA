@@ -4,7 +4,7 @@
 #include "../Graph_AK.h"
 
 #define epsilon_cplex 0.00001
-#define epsilon 0.01
+#define epsilonz 0.01
 
 
 
@@ -23,7 +23,7 @@ bool  find_ViolatedCutMinCst(IloEnv env, Graph_AK & G,  vector<vector<IloNumVar>
 
   //cout<<"test = "<<test<<endl;
 
-  if (test < 1 - epsilon ) {
+  if (test < 1 - epsilonz ) {
     // Found a violated inequality
 
 	bool W_has_depot = false;

@@ -3,6 +3,7 @@
 
 #include <vector>
 #include <string>
+#include <set>
 
 #include <lemon/list_graph.h>
 #include <lemon/concepts/maps.h>
@@ -59,7 +60,18 @@ public:
 	bool has_sub_tour(vector<vector<int> > & W);
 	void Dijsktra(vector<int> & L, int src, bool atteignable);
 	bool is_feasible_tour(vector<vector<int> > & V);
-	bool tabu_search(vector<vector<int> > & S);
+
+	bool tabu_search(vector<vector<int> > & W);
+	int maximum_reached_add_remove(set<int> C_add, set<int> C_remove, set<int> S);
+	float sum_of_demands(set<int> S);
+	int random_selection_M(set<int> C_add, vector<int> Tabu_list, set<int> S, float M, int ntime);
+	float get_max_value_can_get(set<int> C_add, vector<int> Tabu_list, set<int> S);
+	float compute_xS(set<int> S, int elem);
+	set<int> compute_C_addable(set<int> out_S, float smax, vector<int> Tabu_list);
+	set<int> compute_C_removable(set<int> in_S, float smin, vector<int> Tabu_list);
+	int select_random_first_node();
+
+
 
 
 	int get_n(){return n;};

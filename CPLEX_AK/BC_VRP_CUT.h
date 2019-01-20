@@ -3,6 +3,7 @@
 
 #include <ilcplex/ilocplex.h>
 #include "../Graph_AK.h"
+#include <bits/stdc++.h>
 
 #define epsilon_cplex 0.00001
 
@@ -215,33 +216,25 @@ ILOLAZYCONSTRAINTCALLBACK2(LazyUNDIRECTEDCutSeparation, Graph_AK &, G, vector<ve
 
 
 
-#define NTIME 1				//between 1 and 6
-#define ILIMIT 0.2			// between 0.1 and 0.25
-#define ULIMIT 0.4			// between 0.3 and 0.45
-#define TOPE 5				// between 5 and 60
-#define TLL 5				// between 5 and 15
-#define per 0.3				// between 0.2 and 0.6 if NTIME >=2, else 0
-
 bool find_Violated_TabuCST(IloEnv env, Graph_AK & G,  vector<vector<IloNumVar> >& x,  vector<IloRange> & ViolatedCst){
 
 
   int i,j,k;
   vector<vector<int> > W;
   bool test = false;
-//  bool test2 = false;
-
+  int MAX_CST = min(G.get_n() * 2, 125);
+  priority_queue < pair<float,int>, vector<pair<float,int> >, greater<pair<float,int> > > heap_min_violatedCST;
+  vector<IloRange> best_CST;
+  vector<int> index_CST_to_remove;
   test = G.tabu_search(W);
-//  test2 = G.is_feasible_tour(W);
-//  test = test or test2;
 
   if (test) {
-
-	// Found a violated inequality
 	for(i = 0; i < W.size(); i++){
-
 		IloExpr expr(env);
-		float b = 0.0;
 		vector<int> not_in_W;
+		float value_expr = 0.0;
+		float b = 0.0;
+
 		for(j = 0; j < G.get_n(); j++){
 			int z = 0;
 			while( z < W[i].size() and j != W[i][z])
@@ -255,14 +248,38 @@ bool find_Violated_TabuCST(IloEnv env, Graph_AK & G,  vector<vector<IloNumVar> >
 			for(j = 0; j < not_in_W.size(); j++){
 				int v = not_in_W[j];
 				expr += x[u][v];
+				value_expr += G.get_x_value(u,v);
 			}
 			b += G.get_demand(u);
 		}
+
+
 		b = ceil(b/G.get_capacity());
-		ViolatedCst.push_back(expr >= 2*b);
+		value_expr = 2*b - value_expr;
+
+		if(value_expr > 0.01){
+			if(best_CST.size() >= MAX_CST){
+				pair<float,int> least_violated = heap_min_violatedCST.top();
+				index_CST_to_remove.push_back(least_violated.second);
+			}
+
+			best_CST.push_back(expr >= 2*b);
+			int index = best_CST.size() - 1;
+			heap_min_violatedCST.push(make_pair(value_expr,index));
+
+		}
 	}
 
-	return true;
+
+	for(int i = 0; i < best_CST.size(); i++){
+		if(find(index_CST_to_remove.begin(), index_CST_to_remove.end(), i) != index_CST_to_remove.end()){
+			ViolatedCst.push_back(best_CST[i]);
+		}
+	}
+
+
+
+	return ViolatedCst.size() > 0;
   }
 
   return false;
