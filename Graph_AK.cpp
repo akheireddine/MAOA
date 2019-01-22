@@ -754,6 +754,25 @@ bool Graph_AK::tabu_search(vector<vector<int> > & W){
 
 
 
+void Graph_AK::write_routes(string InstanceName, vector<vector<int> > routes){
+	ostringstream FileName;
+	FileName.str("");
+	FileName <<InstanceName.c_str() << ".routes";
+	ofstream fic(FileName.str().c_str());
+
+
+	for(int i = 0; i < routes.size(); i++){
+		fic<<"Route #"<<i<<": ";
+		for(int j = 0; j < routes[i].size(); j++){
+			fic<<j<<" ";
+		}
+		fic<<endl;
+	}
+	fic.close();
+}
+
+
+
 
 
 void Graph_AK::write_dot_G(string InstanceName,vector<vector<int> > routes){

@@ -234,7 +234,6 @@ void Formulation_COUPES_UNDIRECTED(Graph_AK *g, string filename, vector<vector<I
 	//START FROM A HEURISTIC SOLUTION
 	if(start_from_heuristic){
 		float val = g->run_metaheuristic();
-		printf("HEURISTIC VALUE : %.2f\n",val);
 		vector<vector< int > > starting_solution = g->get_meta_solution();
 
 		// Translate from encoding by a list of nodes to variable x
@@ -286,7 +285,9 @@ void Formulation_COUPES_UNDIRECTED(Graph_AK *g, string filename, vector<vector<I
 //	cplex.setParam(IloCplex::Param::WorkMem,150);
 
 
-//	cplex.setParam(IloCplex::Param::TimeLimit, 60);
+	cplex.setParam(IloCplex::Param::TimeLimit, 60);
+
+
 //	cout<<"Wrote LP on file"<<endl;
 //	cplex.exportModel("sortie.lp");
 
@@ -367,9 +368,7 @@ void Formulation_COUPES_UNDIRECTED(Graph_AK *g, string filename, vector<vector<I
 				int u_min = min(u,v);
 				int v_max = max(u,v);
 				if(v != u and (cplex.getValue(x[u_min][v_max]) > 0) ){
-//					printf(" u %d    v %d    ",u,v);
 					still_exists = true;
-//					if(v != id_depot){
 					tmp_l.push_back(v);
 					u = v;
 //					}
@@ -388,9 +387,9 @@ void Formulation_COUPES_UNDIRECTED(Graph_AK *g, string filename, vector<vector<I
 	env.end();
 
 
-	g->write_dot_G(filename,Tournees);
-
-
+//	g->write_dot_G(filename,Tournees);
+	cout<<" filename "<<filename<<endl;
+	g->write_routes(filename,Tournees);
 
 
 }

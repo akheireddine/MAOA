@@ -99,7 +99,7 @@ ILOLAZYCONSTRAINTCALLBACK2(LazyDIRECTEDCutSeparation, Graph_AK &, G, vector<vect
 			cout<< ViolatedCst[i] << endl;
 	#endif
 	for(i = 0; i < ViolatedCst.size(); i++){
-		add(ViolatedCst[i],IloCplex::UseCutPurge);   // UseCutForce UseCutPurge UseCutFilter
+		add(ViolatedCst[i],IloCplex::UseCutForce);   // UseCutForce UseCutPurge UseCutFilter
 	}
   }
   else {
@@ -202,7 +202,7 @@ ILOLAZYCONSTRAINTCALLBACK2(LazyUNDIRECTEDCutSeparation, Graph_AK &, G, vector<ve
 			cout<< ViolatedCst[i] << endl;
 	#endif
 	for(i = 0; i < ViolatedCst.size(); i++){
-		add(ViolatedCst[i],IloCplex::UseCutPurge);   // UseCutForce UseCutPurge UseCutFilter
+		add(ViolatedCst[i],IloCplex::UseCutForce);   // UseCutForce UseCutPurge UseCutFilter
 	}
   }
   else {
@@ -326,7 +326,7 @@ ILOUSERCUTCALLBACK2(UserCutTabuSeparation, Graph_AK &, G, vector<vector<IloNumVa
 			cout<< ViolatedCst[i] << endl;
 	#endif
 	for(i = 0; i < ViolatedCst.size(); i++){
-		add(ViolatedCst[i],IloCplex::UseCutPurge);   // UseCutForce UseCutPurge UseCutFilter
+		add(ViolatedCst[i],IloCplex::UseCutForce);   // UseCutForce UseCutPurge UseCutFilter
 	}
   }
   else {
