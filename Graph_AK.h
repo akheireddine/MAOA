@@ -57,7 +57,7 @@ public:
 	float run_metaheuristic();
 	void print_solution();
 	void write_dot_G(string InstanceName,vector<vector<int> > routes);
-	void write_routes(string InstanceName, vector<vector<int> > routes);
+	void write_routes(string InstanceName, vector<vector<int> > routes, float sol);
 
 	bool has_sub_tour(vector<vector<int> > & W);
 	void Dijsktra(vector<int> & L, int src, bool atteignable);

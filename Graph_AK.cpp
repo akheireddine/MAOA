@@ -754,7 +754,7 @@ bool Graph_AK::tabu_search(vector<vector<int> > & W){
 
 
 
-void Graph_AK::write_routes(string InstanceName, vector<vector<int> > routes){
+void Graph_AK::write_routes(string InstanceName, vector<vector<int> > routes,float sol){
 	ostringstream FileName;
 	FileName.str("");
 	FileName <<InstanceName.c_str() << ".routes";
@@ -768,6 +768,8 @@ void Graph_AK::write_routes(string InstanceName, vector<vector<int> > routes){
 		}
 		fic<<endl;
 	}
+
+	fic<<"cost "<<sol<<endl;
 	fic.close();
 }
 
