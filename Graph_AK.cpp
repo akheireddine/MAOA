@@ -762,9 +762,9 @@ void Graph_AK::write_routes(string InstanceName, vector<vector<int> > routes,flo
 
 
 	for(int i = 0; i < routes.size(); i++){
-		fic<<"Route #"<<i<<": ";
+		fic<<"Route #"<<i+1<<": ";
 		for(int j = 0; j < routes[i].size(); j++){
-			fic<<j<<" ";
+			fic<<routes[i][j]<<" ";
 		}
 		fic<<endl;
 	}

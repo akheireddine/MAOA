@@ -63,8 +63,11 @@ void script_PLNE(string path){
 			float value = Formulation_COUPES_UNDIRECTED(g, path+"/"+f_name, x, true,false,false);
 			clock_t t2=clock() - t1;
 
-			fic<<f_name<<" "<<value<<" "<<double(t2)<<endl;
 			string pathing = path+"/plots_cplex/";  // && neato -Tpdf -o "+f_name+"_G.pdf"+" "+f_name+"_G.dot";
+			g->write_dot_G(pathing+f_name,g->get_routes_cplex());
+			g->write_routes(pathing+f_name,g->get_routes_cplex(),value);
+
+			fic<<f_name<<" "<<value<<" "<<double(t2)<<endl;
 //			system(cmd.c_str());
 			string cmd = "neato -Tpdf -o "+pathing+f_name+"_G.pdf"+" "+pathing+f_name+"_G.dot";
 			system(cmd.c_str());

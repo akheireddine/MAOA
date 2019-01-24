@@ -403,9 +403,9 @@ float Formulation_COUPES_UNDIRECTED(Graph_AK *g, string filename, vector<vector<
 
 	env.end();
 
-
-	g->write_dot_G(filename,Tournees);
-	g->write_routes(filename,Tournees, best_length);
+	g->set_routes_cplex(Tournees);
+//	g->write_dot_G(filename,Tournees);
+//	g->write_routes(filename,Tournees, best_length);
 
 	return best_length;
 

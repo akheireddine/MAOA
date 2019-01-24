@@ -27,6 +27,7 @@ private:
     vector <float> metaheuristic_evaluation_tab;
     vector <int> metaheuristic_position_tab;
     vector < vector<int> > metaheuristic_routes_tab;
+    vector < vector<int> > routes_cplex;
 
     vector <vector <float> > x_value;
     vector< vector<int> > cplex_routes_tab;
@@ -44,6 +45,7 @@ public:
     void construct_Undirected_Lemon_Graph();
 	double undirected_MinimumCut(vector< int >& W);
 	void set_x_value(vector< vector<float> > cost_x);
+	void set_routes_cplex(vector<vector<int> > route){ routes_cplex = route;}
 	float minDistance(float dist[], bool sptSet[]);
 
     Graph_AK(string vrp_filename, int upbound);
@@ -86,6 +88,7 @@ public:
 	float get_distance(int i, int j){ return distance_mat[i][j];};
 	float get_x_value(int i,int j){ return x_value[i][j]; };
 	vector<vector<int> > get_meta_solution();
+	vector<vector<int> > get_routes_cplex(){ return routes_cplex; };
 
 };
 
