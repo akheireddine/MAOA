@@ -169,35 +169,85 @@ bool Graph_AK::is_realizable(vector<int> route){
 	return sum_of_demands <= capacity;
 }
 
-void Graph_AK::initialize_metaheuristic_tabs(){
-	metaheuristic_evaluation_tab = vector<float>(n, 0.);
-	metaheuristic_routes_tab = vector< vector<int> >(n, vector<int>(0));
-	metaheuristic_position_tab = vector<int>(n, 0);
-	for (int i = 0; i < n; i++){
-		if (i != id_depot){
-			metaheuristic_routes_tab[i] = vector<int>(1, i);
-			metaheuristic_evaluation_tab[i] = two_opt(metaheuristic_routes_tab[i]);
-			metaheuristic_position_tab[i] = i;
+
+
+
+
+
+
+
+
+
+
+
+/////////////////////////////////////////////////////////////////////////////////
+
+
+int * Graph_AK::trier_clients(){
+	int *tab = (int*) malloc(sizeof(int)*(n-1));
+	for (int i = 0; i < n-1; i++)
+		tab[i] = i+1;
+
+	int i, j;
+	int permute = true;
+	for (i = (n-1); (i > 1) && permute; i--){
+		permute = false;
+		for (j = 0; j < i - 1; j++)
+		if (get_demand(tab[j + 1]) > get_demand(tab[j])){
+			int aux = tab[j+1];
+			tab[j + 1] = tab[j];
+			tab[j] = aux;
+			permute = true;
 		}
 	}
 }
 
-void Graph_AK::print_solution() {
-	for (int r = 1; r < n; r++) {
-		printf("\nTournée %d : ", r);
-		if (metaheuristic_routes_tab[r].size() != 0) {
-			for (unsigned int c = 0; c < metaheuristic_routes_tab[r].size(); c++)
-				printf("%d ", metaheuristic_routes_tab[r][c]);
-			printf("(%.1f)\n", cost_TSP(metaheuristic_routes_tab[r]));
+int Graph_AK::update_metaheuristic_weight(int node_id, int tournee_id){
+	int global_value = 0;
+	for (int t_id = 0; t_id < metaheuristic_routes_tab.size(); t_id++){
+		int local_value = 0;
+		if (t_id == tournee_id)
+			local_value += get_demand(node_id);
+		for (int k = 0; k < metaheuristic_routes_tab[t_id].size(); k++){
+			if (metaheuristic_routes_tab[t_id][k] == node_id)
+				local_value -= get_demand(node_id);
+			else
+				local_value += get_demand(metaheuristic_routes_tab[t_id][k]);
 		}
+		if (local_value > get_capacity())
+			local_value = local_value - get_capacity();
+		else
+			local_value = 0;
+		global_value += local_value;
+	}
+
+	return global_value;
+}
+
+void Graph_AK::print_solution() {
+	for (int r = 0; r < metaheuristic_routes_tab.size(); r++) {
+		printf("\nTournée %d : ", r);
+		int weight = 0;
+		for (unsigned int c = 0; c < metaheuristic_routes_tab[r].size(); c++){
+			printf("%d ", metaheuristic_routes_tab[r][c]);
+			weight += get_demand(metaheuristic_routes_tab[r][c]);
+		}
+		printf("costTSP : (%.1f) W : (%d)\n", cost_TSP(metaheuristic_routes_tab[r]), weight);
 	}
 }
 
 float Graph_AK::run_metaheuristic(){
+
+	if (!metaheuristic_clustering(m)){
+		printf("Clustering failed !!!!\n");
+//		exit(1);
+		return -1;
+	}
+	// srand(time(NULL));
 	initialize_metaheuristic_tabs();
 	/* CALCUL DE LA BEST SOLUTION INITIALE (1 CLIENT = 1 TOURNÉE)*/
 	float best_solution_value = 0.;
-	for (int i = 0; i < n; i++)
+	for (int i = 0; i < metaheuristic_evaluation_tab.size(); i++)
 		best_solution_value += metaheuristic_evaluation_tab[i];
 //	printf("\nSolution initiale : %1.f ", best_solution_value);
 	/*FIN CALCUL BEST SOLUTION INITIALE */
@@ -211,10 +261,11 @@ float Graph_AK::run_metaheuristic(){
  	while (globally_improved){
  		globally_improved = false;
  		for (unsigned int i = 0; i < changing_route_client_order.size(); i++){
+			// int client_id = changing_route_client_order[rand()%changing_route_client_order.size()];
  			int client_id = changing_route_client_order[i];
  			int client_position = metaheuristic_position_tab[client_id];
- 			for (int r = 0; r < n; r++){
- 				if (r != client_position && metaheuristic_routes_tab[r].size() != 0){           //si la tournée r n'est pas vide et n'est pas la tournée du client
+ 			for (int r = 0; r < metaheuristic_routes_tab.size(); r++){
+ 				if (r != client_position /*&& metaheuristic_routes_tab[r].size() != 0*/){           //si la tournée r n'est pas vide et n'est pas la tournée du client
  					/* DÉBUT DE LA SIMULATION*/
  					vector <int> leaving_route(0);
  					vector <int> coming_route(metaheuristic_routes_tab[r].size());
@@ -232,7 +283,7 @@ float Graph_AK::run_metaheuristic(){
  					float leaving_route_2opt_cost = two_opt(leaving_route);
  					float coming_route_2opt_cost = two_opt(coming_route);
  					float new_global_cost = leaving_route_2opt_cost + coming_route_2opt_cost;
- 					for (int ev = 0; ev < n; ev++){
+ 					for (int ev = 0; ev < metaheuristic_evaluation_tab.size(); ev++){
  						if (ev != client_position && ev != r)
  							new_global_cost += metaheuristic_evaluation_tab[ev];               // ON A BESOIN QUE DES 2 NVELLES TOURNEES a comparé avec l'ancienne tournee
  					}
@@ -242,7 +293,7 @@ float Graph_AK::run_metaheuristic(){
  						metaheuristic_evaluation_tab[client_position] = leaving_route_2opt_cost;
  						metaheuristic_evaluation_tab[r] = coming_route_2opt_cost;
  						metaheuristic_position_tab[client_id] = r;
- 						if (metaheuristic_routes_tab[client_position].size() == 0) metaheuristic_routes_tab[client_position] = vector<int>(0);
+ 						//if (metaheuristic_routes_tab[client_position].size() == 0) metaheuristic_routes_tab[client_position] = vector<int>(0);
  						globally_improved = true;
  						best_solution_value = new_global_cost;                                  //MAIS ICI LE COST GLOBAL
 // 						printf("\nAmélioration : nouveau coût %.1f", best_solution_value);
@@ -262,6 +313,112 @@ float Graph_AK::run_metaheuristic(){
 
 }
 
+int Graph_AK::evaluate_weight_penality(){
+	int penality = 0;
+	for(int k = 0; k < metaheuristic_evaluation_weight.size(); k++){
+		if (metaheuristic_evaluation_weight[k] > get_capacity())
+			penality +=  metaheuristic_evaluation_weight[k] - get_capacity();
+	}
+	return penality;
+}
+
+bool Graph_AK::metaheuristic_clustering(int m){
+	metaheuristic_routes_tab = vector< vector<int> >(m, vector<int>(0));
+	metaheuristic_position_tab = vector<int>(n, 0);
+	int * tab_client = trier_clients();
+//	for(int i= 0; i < n-1; i++)
+//		printf("%d ", tab_client[i]);
+	int t = 0;
+	for (int i = 0; i < n-1; i++){
+		int node_id = tab_client[i];
+		metaheuristic_routes_tab[t].push_back(node_id);
+		metaheuristic_position_tab[node_id] = t;
+		t = (t + 1)%m;
+	}
+//	print_solution();
+	// FIN DISTIUTION DES CLIENTS EN VUE DE FORMER m TOURNEES REALISABLES
+
+	//INITIALISATION DES POIDS DES TOURNEES
+	vector < int  > eval_routes = vector <int>(m);
+	metaheuristic_evaluation_weight = vector<int>(m, 0);
+	for(int i = 0; i < m; i++){
+		for(int k = 0; k < metaheuristic_routes_tab[i].size(); k++){
+			metaheuristic_evaluation_weight[i] += get_demand(metaheuristic_routes_tab[i][k]);
+		}
+	}
+	int nb_tests = n;
+	while (nb_tests > 0){
+		nb_tests --;
+		for (int node_id = 1; node_id < n; node_id++){
+			int best_target_route = -1;
+			int current_global_cost = evaluate_weight_penality();
+			// printf("currebt_cost : %d\n", current_global_cost);
+			int position_node_id = metaheuristic_position_tab[node_id];
+
+			for (int new_tournee = 0; new_tournee < metaheuristic_routes_tab.size(); new_tournee++){
+				if (new_tournee != position_node_id){
+					int new_cost = update_metaheuristic_weight(node_id, new_tournee);
+					// printf("new cost : %d\n", new_cost);
+					if (new_cost < current_global_cost){
+						current_global_cost = new_cost;
+						best_target_route = new_tournee;
+					}
+				}
+			}
+
+			if(best_target_route != -1){
+				metaheuristic_routes_tab[best_target_route].push_back(node_id);
+				metaheuristic_position_tab[node_id] = best_target_route;
+				metaheuristic_evaluation_weight[best_target_route] += get_demand(node_id);
+				metaheuristic_evaluation_weight[position_node_id] -= get_demand(node_id);
+				// modification de metaheuristic_routes_tab[position_node_id]
+				vector<int> route_left(0);
+				for(int l = 0; l < metaheuristic_routes_tab[position_node_id].size(); l++){
+					if (metaheuristic_routes_tab[position_node_id][l] != node_id){
+						route_left.push_back(metaheuristic_routes_tab[position_node_id][l]);
+					}
+				}
+				metaheuristic_routes_tab[position_node_id] = route_left;
+			}
+		}
+		if (evaluate_weight_penality() == 0)
+			break;
+	}
+//	print_solution();
+	return evaluate_weight_penality() == 0;
+
+	return true;
+
+}
+
+/////////////////////////////////////////////////////////////////////////////////
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+void Graph_AK::initialize_metaheuristic_tabs(){
+	metaheuristic_evaluation_tab = vector<float>(metaheuristic_routes_tab.size(), 0.);
+	for(int r = 0; r < metaheuristic_routes_tab.size(); r++)
+		metaheuristic_evaluation_tab[r] = two_opt(metaheuristic_routes_tab[r]);
+}
+
+
+
+
+
 float Graph_AK::euclidean_distance(int i, int j){
 	pair<int,int> xi = x_y_tab[i];
 	pair<int,int> xj = x_y_tab[j];
@@ -269,7 +426,7 @@ float Graph_AK::euclidean_distance(int i, int j){
 }
 
 
-vector<vector<int> > Graph_AK::get_meta_solution(){
+vector<vector<int> > Graph_AK::get_metaheuristic_routes_tab(){
 	vector<vector<int> > routes;
 
 	for(int i = 0; i < metaheuristic_routes_tab.size(); i++){

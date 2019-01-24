@@ -30,7 +30,7 @@ int get_number_of_routes(string filename){
 	}
 
 	k = atoi(str_k.c_str());
-	printf(" value K %d\n",k);
+//	printf(" value K %d\n",k);
 	return k;
 }
 

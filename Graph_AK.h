@@ -26,6 +26,8 @@ private:
     int id_depot;
     vector <float> metaheuristic_evaluation_tab;
     vector <int> metaheuristic_position_tab;
+    vector <int> metaheuristic_evaluation_weight;
+
     vector < vector<int> > metaheuristic_routes_tab;
     vector < vector<int> > routes_cplex;
 
@@ -49,6 +51,8 @@ public:
 	float minDistance(float dist[], bool sptSet[]);
 
     Graph_AK(string vrp_filename, int upbound);
+
+
     float cost_TSP(vector<int> route);
     float two_opt(vector<int> & route);
     float euclidean_distance(int i,int j);
@@ -58,6 +62,17 @@ public:
 	void initialize_metaheuristic_tabs();
 	float run_metaheuristic();
 	void print_solution();
+
+    /////////////////////RAJOUTER/////////////////////////////:::
+//    void initialize_metaheuristic_tabs();
+//	float run_metaheuristic(int m);
+    bool metaheuristic_clustering(int m);
+    int * trier_clients();
+    int update_metaheuristic_weight(int node_id, int tournee_id);
+    int evaluate_weight_penality();
+
+
+
 	void write_dot_G(string InstanceName,vector<vector<int> > routes);
 	void write_routes(string InstanceName, vector<vector<int> > routes, float sol);
 
@@ -87,7 +102,7 @@ public:
 	int get_m(){ return m;};
 	float get_distance(int i, int j){ return distance_mat[i][j];};
 	float get_x_value(int i,int j){ return x_value[i][j]; };
-	vector<vector<int> > get_meta_solution();
+	vector<vector<int> > get_metaheuristic_routes_tab();
 	vector<vector<int> > get_routes_cplex(){ return routes_cplex; };
 
 };
