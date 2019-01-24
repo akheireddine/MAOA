@@ -681,12 +681,12 @@ bool Graph_AK::is_feasible_tour(vector<vector<int> > & V){
 
 
 
-#define NTIME 1				//between 1 and 6
+#define NTIME 2				//between 1 and 6
 #define ILIMIT 0.2			// between 0.1 and 0.25
 #define ULIMIT 0.4			// between 0.3 and 0.45
-#define TOPE 5				// between 5 and 60
-#define TLL 5				// between 5 and 15
-#define PER 0.3				// between 0.2 and 0.6 if NTIME >=2, else 0
+#define TOPE 10				// between 5 and 60
+#define TLL 8				// between 5 and 15
+#define PER 0.4				// between 0.2 and 0.6 if NTIME >=2, else 0
 
 int Graph_AK::select_random_first_node(){
 

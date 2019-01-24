@@ -60,14 +60,14 @@ void script_PLNE(string path){
             vector<vector<IloNumVar > > x;
 
         	clock_t t1=clock();
-			float value = Formulation_COUPES_UNDIRECTED(g, path+"/"+f_name, x, true,false,false);
-			clock_t t2=clock() - t1;
+			float value = Formulation_COUPES_UNDIRECTED(g, path+"/"+f_name, x, true,true,false);
+			clock_t t2 = clock() - t1;
 
 			string pathing = path+"/plots_cplex/";  // && neato -Tpdf -o "+f_name+"_G.pdf"+" "+f_name+"_G.dot";
 			g->write_dot_G(pathing+f_name,g->get_routes_cplex());
 			g->write_routes(pathing+f_name,g->get_routes_cplex(),value);
 
-			fic<<f_name<<" "<<value<<" "<<double(t2)<<endl;
+			fic<<f_name<<" "<<value<<" "<<((float)t2)/CLOCKS_PER_SEC<<endl;
 //			system(cmd.c_str());
 			string cmd = "neato -Tpdf -o "+pathing+f_name+"_G.pdf"+" "+pathing+f_name+"_G.dot";
 			system(cmd.c_str());
@@ -93,31 +93,37 @@ int main (int argc, char**argv){
 
 /////////////////////
 
-//    if(argc!=3){
-//    	cerr<<"Error arguments"<<endl;
-//        return 1;
-//    }
-//
-//    string name=argv[1];
-//    int m = atoi(argv[2]);
-//    Graph_AK * g = new Graph_AK(name+".vrp", m);
-//    vector<vector<IloNumVar > > x;
-//
-////    MTZ_Formulation(g, name, x,true,true);
-//
-//    Formulation_COUPES_UNDIRECTED(g, name, x, true,true,false);
+    if(argc!=3){
+    	cerr<<"Error arguments"<<endl;
+        return 1;
+    }
 
+    string name=argv[1];
+    int m = atoi(argv[2]);
+    Graph_AK * g = new Graph_AK(name+".vrp", m);
+    vector<vector<IloNumVar > > x;
+
+//    MTZ_Formulation(g, name, x,true,true);
+    clock_t t2 = clock();
+    float value = Formulation_COUPES_UNDIRECTED(g, name, x, true,true,false);
+    t2 = clock() - t2;
+	cout<<((float)(t2))/CLOCKS_PER_SEC<<endl;
+
+	string pathing = "../plots_cplex_usercut/";  // && neato -Tpdf -o "+f_name+"_G.pdf"+" "+f_name+"_G.dot";
+
+	g->write_dot_G(pathing+name,g->get_routes_cplex());
+	g->write_routes(pathing+name,g->get_routes_cplex(),value);
 
 
 //////////////// SCRIPT /////////////////
 
-//
-    if(argc!=2){
-    	cerr<<"Error arguments"<<endl;
-        return 1;
-    }
-    string path = argv[1];
-    script_PLNE(path);
+
+//	if(argc!=2){
+//    	cerr<<"Error arguments"<<endl;
+//        return 1;
+//    }
+//    string path = argv[1];
+//    script_PLNE(path);
 
 
     return 0;

@@ -1,13 +1,2 @@
-E-n33-k4.vrp 0 2
-E-n76-k10.vrp 0 0
-E-n76-k8.vrp 0 1
-E-n76-k7.vrp 0 1
-E-n22-k4.vrp 0 1
-E-n31-k7.vrp 0 0
-E-n101-k14.vrp 0 1
-E-n51-k5.vrp 0 1
-E-n13-k4.vrp 0 1
-E-n76-k14.vrp 0 1
-E-n30-k3.vrp 0 0
-E-n101-k8.vrp 0 1
-E-n23-k3.vrp 0 1
+E-n76-k14.vrp -1 1800.06
+E-n30-k3.vrp 535.797 1863.01

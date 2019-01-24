@@ -248,7 +248,7 @@ float Formulation_COUPES_UNDIRECTED(Graph_AK *g, string filename, vector<vector<
 	//START FROM A HEURISTIC SOLUTION
 	if(start_from_heuristic){
 		float val = g->run_metaheuristic();
-		vector<vector< int > > starting_solution = g->get_meta_solution();
+		vector<vector< int > > starting_solution = g->get_metaheuristic_routes_tab();
 
 		// Translate from encoding by a list of nodes to variable x
 		vector<vector<int> > startx;

@@ -222,10 +222,10 @@ bool find_Violated_TabuCST(IloEnv env, Graph_AK & G,  vector<vector<IloNumVar> >
   int i,j,k;
   vector<vector<int> > W;
   bool test = false;
-  int MAX_CST = min(G.get_n() * 2, 125);
+  int MAX_CST = max(G.get_n() * 2, 125);
   priority_queue < pair<float,int>, vector<pair<float,int> >, greater<pair<float,int> > > heap_min_violatedCST;
   vector<IloRange> best_CST;
-  vector<int> index_CST_to_remove;
+  vector<int> index_CST_to_remove(0);
   test = G.tabu_search(W);
 
   if (test) {
@@ -257,12 +257,11 @@ bool find_Violated_TabuCST(IloEnv env, Graph_AK & G,  vector<vector<IloNumVar> >
 		b = ceil(b/G.get_capacity());
 		value_expr = 2*b - value_expr;
 
-		if(value_expr > 0.01){
+		if(value_expr < 0.01){
 			if(best_CST.size() >= MAX_CST){
 				pair<float,int> least_violated = heap_min_violatedCST.top();
 				index_CST_to_remove.push_back(least_violated.second);
 			}
-
 			best_CST.push_back(expr >= 2*b);
 			int index = best_CST.size() - 1;
 			heap_min_violatedCST.push(make_pair(value_expr,index));
@@ -270,15 +269,13 @@ bool find_Violated_TabuCST(IloEnv env, Graph_AK & G,  vector<vector<IloNumVar> >
 		}
 	}
 
-
 	for(int i = 0; i < best_CST.size(); i++){
-		if(find(index_CST_to_remove.begin(), index_CST_to_remove.end(), i) != index_CST_to_remove.end()){
+		if(find(index_CST_to_remove.begin(), index_CST_to_remove.end(), i) == index_CST_to_remove.end()){
 			ViolatedCst.push_back(best_CST[i]);
 		}
 	}
 
-
-
+//	printf("UserCut violated constraints : %d (%d removed) \n",ViolatedCst.size(),index_CST_to_remove.size());
 	return ViolatedCst.size() > 0;
   }
 

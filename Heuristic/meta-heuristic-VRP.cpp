@@ -2,7 +2,6 @@
 #include <iostream>
 #include <fstream>
 #include <dirent.h>
-#include <ctime>
 #include <time.h> // I don't know which1 exactly :)
 #include <string>
 
@@ -57,7 +56,7 @@ void script_metaheuristic(string path){
 			float value = g->run_metaheuristic();
 			clock_t t2=clock() - t1;
 
-			fic<<f_name<<" "<<value<<" "<<double(t2)<<endl;
+			fic<<f_name<<" "<<value<<" "<<((float)t2)/CLOCKS_PER_SEC<<endl;
 
 			string pathing = path+"/plots_heuristics/";
 
@@ -91,9 +90,10 @@ int main(int argc, char**argv){
 //
 //	Graph_AK * g = new Graph_AK(nameext,m);
 //
+//	clock_t t1=clock();
 //	float value = g->run_metaheuristic();
-//	printf("\nbest solution %.2f\n", value);
-//
+//	printf("\nbest solution %.2f (time = %f)\n", value,double(clock() -t1));
+////
 //	g->write_dot_G(name,g->get_metaheuristic_routes_tab());
 //	g->write_routes(name,g->get_metaheuristic_routes_tab(),value);
 
