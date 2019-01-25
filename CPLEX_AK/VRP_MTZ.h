@@ -22,7 +22,6 @@ void add_out_of_depot_constraint(Graph_AK *g, vector<vector <IloNumVar> > x, Ilo
     ostringstream nomcst;
 	nomcst.str("");
 	nomcst<<"(1)";
-//	cout << "(1)" << Constraints[nbcst] << endl;
 	Constraints[nbcst].setName(nomcst.str().c_str());
 }
 
@@ -40,7 +39,6 @@ void add_in_of_depot_constraint(Graph_AK *g, vector<vector <IloNumVar> > x, IloE
 	ostringstream nomcst;
 	nomcst.str("");
 	nomcst<<"(2)";
-//	cout << "(2)" << Constraints[nbcst] << endl;
 	Constraints[nbcst].setName(nomcst.str().c_str());
 }
 
@@ -52,7 +50,7 @@ void add_in_of_client_constraint(Graph_AK * g, vector<vector<IloNumVar> > x, Ilo
 		IloExpr c3(env);
 		if( (i != g->get_depot())){
 			for(int j = 0; j < n ; j++){
-				if( (j!=i) /*and j!= depot*/){   // error?
+				if( (j!=i) ){
 					c3 += x[i][j];
 				}
 			}
@@ -60,7 +58,6 @@ void add_in_of_client_constraint(Graph_AK * g, vector<vector<IloNumVar> > x, Ilo
 			ostringstream nomcst;
 			nomcst.str("");
 			nomcst<<"(3_"<<i<<")";
-//			cout << "(3_"<<i<<")"<< Constraints[nbcst] << endl;
 			Constraints[nbcst].setName(nomcst.str().c_str());
 			nbcst++;
 		}
@@ -76,7 +73,7 @@ void add_out_of_client_constraint(Graph_AK * g, vector<vector<IloNumVar> > x, Il
 		IloExpr c4(env);
 		if(j != g->get_depot()){
 			for(int i = 0; i < n ; i++){
-				if((j!=i) /*and i!= depot*/){   //error?
+				if((j!=i) ){
 					c4 += x[i][j];
 				}
 			}
@@ -84,7 +81,6 @@ void add_out_of_client_constraint(Graph_AK * g, vector<vector<IloNumVar> > x, Il
 			ostringstream nomcst;
 			nomcst.str("");
 			nomcst<<"(4_"<<j<<")";
-	//			cout << "(4_"<<j<<")"<< Constraints[nbcst] << endl;
 			Constraints[nbcst].setName(nomcst.str().c_str());
 		}
 	}
@@ -101,15 +97,12 @@ void add_MTZ_constraints(Graph_AK *g, vector<vector<IloNumVar> > x, vector<IloNu
 		for(int j = 0; j < n; j++){
 			if( (j != depot) and (i != depot) and (i != j)){
 				IloExpr mtz(env);
-//				mtz = w[i] - w[j] - g->get_demand(i) + (g->get_capacity() + g->get_demand(i))*(1 - x[i][j]) ;
 				mtz = w[i] - w[j] + g->get_capacity() * x[i][j] - g->get_capacity() + g->get_demand(j);
 				Constraints.add(mtz <= 0);
 
-//				Constraints.add(mtz >= 0);
 				ostringstream nomcst;
 				nomcst.str("");
 				nomcst<<"(5_"<<i<<"_"<<j<<")";
-//				cout << Constraints[nbcst]<<endl;
 				Constraints[nbcst].setName(nomcst.str().c_str());
 				nbcst++;
 			}
@@ -137,7 +130,6 @@ void create_var_W(Graph_AK *g, vector<IloNumVar> &w, IloEnv env){
     int n = g->get_n();
 
 	for(int i = 0; i < n; i++){
-//		w[i] = IloNumVar(env, 0.0, g->get_capacity(), ILOFLOAT);
 		w[i] = IloNumVar(env, g->get_demand(i), g->get_capacity(), ILOFLOAT);
 
 		ostringstream nomvar;
@@ -206,8 +198,6 @@ void MTZ_Formulation(Graph_AK * g, string filename, vector<vector<IloNumVar > > 
 	}
 
 
-	cout<<"Wrote LP on file"<<endl;
-	cplex.exportModel("sortie.lp");
 
 	if ( !cplex.solve() ) {
 	 env.error() << "Failed to optimize LP" << endl;
@@ -258,70 +248,12 @@ void MTZ_Formulation(Graph_AK * g, string filename, vector<vector<IloNumVar > > 
 		i++;
 	}
 
-	//	for(i = 0; i < Tournees.size();i++){
-	//		for(int j = 0; j < Tournees[i].size(); j++){
-	//			printf(" %d ",Tournees[i][j]);
-	//		}
-	//		printf("\n");
-	//	}
-
 	env.end();
 
 
 	g->write_dot_G(filename,Tournees);
 
 }
-
-
-
-
-//void write_solution(IloEnv env, IloCplex cplex, vector<vector<IloNumVar> > x, Graph_AK * g , string filename){
-//
-//  cout<<"Wrote LP on file"<<endl;
-//  cplex.exportModel("sortie.lp");
-//
-//  if ( !cplex.solve() ) {
-//	 env.error() << "Failed to optimize LP" << endl;
-//	 exit(1);
-//   }
-//
-//   env.out() << "Solution status = " << cplex.getStatus() << endl;
-//   env.out() << "Solution value  = " << cplex.getObjValue() << endl;
-//
-//   list< pair<int,int> > Lsol;
-//
-//   for(unsigned int i = 0; i < x.size() ; i++){
-//	  for (unsigned int j=0;j< x.size() ;j++){
-//	   if (i!=j ){
-//		   if (cplex.getValue(x[i][j]) == 1 ){//>1-epsilon){
-//			   Lsol.push_back(make_pair(i,j));
-//		   }
-//	   }
-//	  }
-//   }
-//
-//
-//   env.end();
-//
-////
-////   list<pair<int,int> >::const_iterator itp;
-////
-////
-////   ofstream ficsol((filename+".ak_cplex").c_str());
-////   double best_length=0;
-////   for(itp = Lsol.begin(); itp!=Lsol.end();itp++) {
-////	 best_length += g->get_distance(itp->first,itp->second);
-////	 ficsol<<itp->first<<" "<<itp->second<<endl;
-////   }
-////
-////   ficsol.close();
-////
-////   cout<<"Tour found of value : "<<best_length<<endl;
-//}
-
-
-
-
 
 
 

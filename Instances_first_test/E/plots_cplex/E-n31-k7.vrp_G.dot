@@ -1,3 +1,0 @@
-graph G {
-  14[shape = box, label = "depot", style = filled ];
-}

@@ -12,7 +12,6 @@ bool  find_ViolatedCutMinCst(IloEnv env, Graph_AK & G,  vector<vector<IloNumVar>
 
   int i,j;
   vector<int> W;
-//  vector<int>::const_iterator it;
   vector<int> V_W;
   float test;
 
@@ -21,7 +20,6 @@ bool  find_ViolatedCutMinCst(IloEnv env, Graph_AK & G,  vector<vector<IloNumVar>
   // Find a minimum cut
   test = G.undirected_MinimumCut(W);
 
-  //cout<<"test = "<<test<<endl;
 
   if (test < 1 - epsilonz ) {
     // Found a violated inequality

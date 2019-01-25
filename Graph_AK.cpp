@@ -81,9 +81,6 @@ Graph_AK::Graph_AK (string vrp_filename, int upbound) {
   fic.close();
 
   initialize_distance_matrix();
-//  construct_Undirected_Lemon_Graph();
-
-//  print_distance_matrix();
 
 
 }

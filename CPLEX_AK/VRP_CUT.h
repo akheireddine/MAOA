@@ -3,6 +3,9 @@
 #include "BC_VRP_CUT.h"
 
 
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////// DIRECTED FORMULATION /////////////////////////////////////////////////////
 void Formulation_COUPES_DIRECTED(Graph_AK * g, string filename, vector<vector<IloNumVar > > & x, bool with_lazycut, bool with_usercut){
 
 	IloEnv   env;
@@ -47,10 +50,6 @@ void Formulation_COUPES_DIRECTED(Graph_AK * g, string filename, vector<vector<Il
 		cplex.use(LazyDIRECTEDCutSeparation(env, *g,x));
 	}
 
-//	if(with_usercut){
-//		cplex.use(LazyCutSeparation(env, *g,x));
-//	}
-
 	cout<<"Wrote LP on file"<<endl;
 	cplex.exportModel("sortie.lp");
 
@@ -83,21 +82,15 @@ void Formulation_COUPES_DIRECTED(Graph_AK * g, string filename, vector<vector<Il
 
 		u = id_depot;
 
-//		printf("\n tournee : \n");
-
 		while( still_exists ){
 			still_exists = false;
 
 			for(int j = 0; j < L.size(); j++){
 				v = L[j];
 				if(v != u and (cplex.getValue(x[u][v]) > 0) or (cplex.getValue(x[v][u]) > 0)){
-//					printf(" u %d    v %d    ",u,v);
-
 					still_exists = true;
-//					if(v != id_depot){
 					tmp_l.push_back(v);
 					u = v;
-//					}
 					L.erase(L.begin() + j);
 
 					break;
@@ -108,13 +101,6 @@ void Formulation_COUPES_DIRECTED(Graph_AK * g, string filename, vector<vector<Il
 		Tournees.push_back(tmp_l);
 		i++;
 	}
-
-//	for(i = 0; i < Tournees.size();i++){
-//		for(int j = 0; j < Tournees[i].size(); j++){
-//			printf(" %d ",Tournees[i][j]);
-//		}
-//		printf("\n");
-//	}
 
 
 	env.end();
@@ -132,13 +118,7 @@ void Formulation_COUPES_DIRECTED(Graph_AK * g, string filename, vector<vector<Il
 
 
 
-
-
-
-
-
-
-
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 //////////////////////////////////////////////////// UNDIRECTED FORMULATION ////////////////////////////////////////////////////
 
 void create_binary_undirected_var_X(int n, vector<vector<IloNumVar > > & x, IloEnv env){
@@ -170,7 +150,6 @@ void add_depot_constraint(Graph_AK *g, vector<vector <IloNumVar> > x, IloEnv env
 	ostringstream nomcst;
 	nomcst.str("");
 	nomcst<<"(1)";
-//	cout << "(2)" << Constraints[nbcst] << endl;
 	Constraints[nbcst].setName(nomcst.str().c_str());
 }
 
@@ -184,7 +163,7 @@ void add_client_constraint(Graph_AK * g, vector<vector<IloNumVar> > x, IloEnv en
 		IloExpr c2(env);
 		if( (i != g->get_depot())){
 			for(int j = 0; j < n ; j++){
-				if( (j!=i) /*and j!= depot*/){   // error?
+				if( (j!=i)){
 					c2 += x[i][j];
 				}
 			}
@@ -193,7 +172,6 @@ void add_client_constraint(Graph_AK * g, vector<vector<IloNumVar> > x, IloEnv en
 			ostringstream nomcst;
 			nomcst.str("");
 			nomcst<<"(2_"<<i<<")";
-//			cout << "(3_"<<i<<")"<< Constraints[nbcst] << endl;
 			Constraints[nbcst].setName(nomcst.str().c_str());
 			nbcst++;
 		}
@@ -242,7 +220,9 @@ float Formulation_COUPES_UNDIRECTED(Graph_AK *g, string filename, vector<vector<
 	}
 
 	if(with_usercut){
-		cplex.use(UserCutTabuSeparation(env, *g,x));
+//		cplex.use(UserCutTabuSeparation(env, *g,x));
+		cplex.use(UserCutGreedySeparation(env, *g,x));
+
 	}
 
 	//START FROM A HEURISTIC SOLUTION
@@ -283,27 +263,10 @@ float Formulation_COUPES_UNDIRECTED(Graph_AK *g, string filename, vector<vector<
 		startVal.end();
 		startVar.end();
 
-//		cplex.setParam(IloCplex::Param::Simplex::Limits::UpperObj,val);
-
 	}
 
-
-//   cplex.setParam(IloCplex::Param::MIP::Cuts::Gomory,2);
-
-//	cplex.setParam(IloCplex::Param::MIP::Limits::TreeMemory, 150);
-
-//	cplex.setParam(IloCplex::Param::MIP::Limits::EachCutLimit,0);   // elimine zero half cut et covers
-
-//	cplex.setParam(IloCplex::Param::MIP::Limits::CutsFactor,1);    // default 4
-
-//	cplex.setParam(IloCplex::Param::WorkMem,150);
-
-
+	// LIMIT TIME SOLVING TO 30MINUTES
 	cplex.setParam(IloCplex::Param::TimeLimit, 1800);
-
-
-//	cout<<"Wrote LP on file"<<endl;
-//	cplex.exportModel("sortie.lp");
 
 
 	if ( !cplex.solve() ) {
@@ -338,27 +301,6 @@ float Formulation_COUPES_UNDIRECTED(Graph_AK *g, string filename, vector<vector<
 	   }
 	  }
    }
-
-
-//   env.end();
-
-//   list<pair<int,int> >::const_iterator itp;
-//
-//
-//   ofstream ficsol((filename+".ak_cplex").c_str());
-//   double best_length=0;
-//   for(itp = Lsol.begin(); itp!=Lsol.end();itp++) {
-//	 best_length += g->get_distance(itp->first,itp->second);
-//	 ficsol<<itp->first<<" "<<itp->second<<endl;
-//   }
-//
-//   ficsol.close();
-
-//   cout<<"Tour found of value : "<<best_length<<endl;
-
-
-
-
 
 
 	int i, u, v;
@@ -404,8 +346,8 @@ float Formulation_COUPES_UNDIRECTED(Graph_AK *g, string filename, vector<vector<
 	env.end();
 
 	g->set_routes_cplex(Tournees);
-//	g->write_dot_G(filename,Tournees);
-//	g->write_routes(filename,Tournees, best_length);
+	g->write_dot_G(filename,Tournees);
+	g->write_routes(filename,Tournees, best_length);
 
 	return best_length;
 

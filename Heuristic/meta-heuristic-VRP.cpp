@@ -26,9 +26,9 @@ int get_number_of_routes(string filename){
 	}
 
 	k = atoi(str_k.c_str());
-//	printf(" value K %d\n",k);
 	return k;
 }
+
 
 void script_metaheuristic(string path){
     ofstream fic;
@@ -77,39 +77,39 @@ int main(int argc, char**argv){
 
 ////////////////////////////////////////////// //////////////////////////////////////////////
 
-//	string name, nameext;
-//
-//	if(argc!=3){
-//		cerr<<"Error arguments"<<endl;
-//		return 1;
-//	}
-//	name=argv[1];
-//	nameext=name+".vrp";
-//
-//    int m = atoi(argv[2]);
-//
-//	Graph_AK * g = new Graph_AK(nameext,m);
-//
-//	clock_t t1=clock();
-//	float value = g->run_metaheuristic();
-//	printf("\nbest solution %.2f (time = %f)\n", value,double(clock() -t1));
-////
-//	g->write_dot_G(name,g->get_metaheuristic_routes_tab());
-//	g->write_routes(name,g->get_metaheuristic_routes_tab(),value);
+	string name, nameext;
+
+	if(argc!=3){
+		cerr<<"Error arguments"<<endl;
+		return 1;
+	}
+	name=argv[1];
+	nameext=name+".vrp";
+
+    int m = atoi(argv[2]);
+
+	Graph_AK * g = new Graph_AK(nameext,m);
+
+	clock_t t1=clock();
+	float value = g->run_metaheuristic();
+	printf("\nbest solution %.2f (time = %f)\n", value,double(clock() -t1));
+
+	g->write_dot_G(name,g->get_metaheuristic_routes_tab());
+	g->write_routes(name,g->get_metaheuristic_routes_tab(),value);
 
 
 
 ////////////////////////////////////////////// SCRIPT //////////////////////////////////////////////
 
-
-	if(argc!=2){
-		cerr<<"Error arguments"<<endl;
-		return 1;
-	}
-
-	string path = argv[1];
-
-	script_metaheuristic(path);
+//
+//	if(argc!=2){
+//		cerr<<"Error arguments"<<endl;
+//		return 1;
+//	}
+//
+//	string path = argv[1];
+//
+//	script_metaheuristic(path);
 
 
 	return 0;

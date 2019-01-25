@@ -20,17 +20,13 @@ int get_number_of_routes(string filename){
 			break;
 		}
 	}
-
 	string str_k = "";
-
 	while(isdigit(filename[i])){
 		str_k +=filename[i];
 		cout<<str_k<<endl;
 		i++;
 	}
-
 	k = atoi(str_k.c_str());
-//	printf(" value K %d\n",k);
 	return k;
 }
 
@@ -104,15 +100,17 @@ int main (int argc, char**argv){
     vector<vector<IloNumVar > > x;
 
 //    MTZ_Formulation(g, name, x,true,true);
+
     clock_t t2 = clock();
-    float value = Formulation_COUPES_UNDIRECTED(g, name, x, true,true,false);
+    float value = Formulation_COUPES_UNDIRECTED(g, name, x, true,true,true);
+
+
     t2 = clock() - t2;
-	cout<<((float)(t2))/CLOCKS_PER_SEC<<endl;
+	cout<<"TIME : "<<((float)(t2))/CLOCKS_PER_SEC<<endl;
 
-	string pathing = "../plots_cplex_usercut/";  // && neato -Tpdf -o "+f_name+"_G.pdf"+" "+f_name+"_G.dot";
 
-	g->write_dot_G(pathing+name,g->get_routes_cplex());
-	g->write_routes(pathing+name,g->get_routes_cplex(),value);
+	g->write_dot_G(name,g->get_routes_cplex());
+	g->write_routes(name,g->get_routes_cplex(),value);
 
 
 //////////////// SCRIPT /////////////////
